@@ -23,4 +23,9 @@ public readonly struct Point
     public override bool Equals(object? obj) => obj is Point p && this == p;
 
     public override int GetHashCode() => HashCode.Combine(X.GetHashCode(), Y.GetHashCode());
+
+    internal void Deconstruct(out int x, out int y)
+    {
+        (x, y) = (X, Y);
+    }
 }

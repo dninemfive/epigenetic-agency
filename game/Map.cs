@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public class Map
+public class Map : IEnumerable<Cell>
 {
     private readonly Cell[,] _cells;
     public int Width  => _cells.GetLength(0);
@@ -17,6 +18,16 @@ public class Map
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 _cells[x, y] = new(this, x, y);
+    }
+    public Map(Map parent, IReadOnlyDictionary<Point, Cell> changedCells)
+    {
+        _cells = new Cell[parent.Width, parent.Height];
+        foreach(Cell cell in parent)
+        {
+            Point position = cell.Position;
+            (int x, int y) = position;
+            _cells[x, y] = changedCells.TryGetValue(position, out Cell? value) ? value : cell;
+        }
     }
     public bool IsInBounds(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
     public bool IsInBounds((int x, int y) tuple) => IsInBounds(tuple.x, tuple.y);
@@ -33,4 +44,9 @@ public class Map
         }
     }
     public IEnumerable<Cell> NeighborsOf(Cell cell) => NeighborsOf(cell.Position);
+
+    public IEnumerator<Cell> GetEnumerator()
+        => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+        => _cells.GetEnumerator();
 }

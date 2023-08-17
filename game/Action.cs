@@ -5,7 +5,5 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public interface IActor : ILocationHaver
-{
-    public Map ActOn(Map map, Action action);
-}
+
+public delegate Map? Action(Map map, Direction direction, ILocationHaver source);
