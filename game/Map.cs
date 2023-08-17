@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public class Map : IEnumerable<Cell>
+public class Map
 {
     private readonly Cell[,] _cells;
     public int Width  => _cells.GetLength(0);
@@ -22,7 +23,7 @@ public class Map : IEnumerable<Cell>
     public Map(Map parent, IReadOnlyDictionary<Point, Cell> changedCells)
     {
         _cells = new Cell[parent.Width, parent.Height];
-        foreach(Cell cell in parent)
+        foreach(Cell cell in parent.Cells)
         {
             Point position = cell.Position;
             (int x, int y) = position;
@@ -44,9 +45,41 @@ public class Map : IEnumerable<Cell>
         }
     }
     public IEnumerable<Cell> NeighborsOf(ILocationHaver locHaver) => NeighborsOf(locHaver.Position);
-
-    public IEnumerator<Cell> GetEnumerator()
-        => GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator()
-        => _cells.GetEnumerator();
+    public IEnumerable<IEnumerable<Cell>> Rows
+    {
+        get
+        {
+            for(int x = 0;  x < Width; x++)
+            {
+                List<Cell> row = new();
+                for (int y = 0; y < Height; y++)
+                    row.Add(_cells[x, y]);
+                yield return row;
+            }
+        }
+    }
+    public IEnumerable<Cell> Cells
+    {
+        get
+        {
+            foreach(IEnumerable<Cell> row in Rows)
+            {
+                foreach (Cell cell in row)
+                    yield return cell;
+            }
+        }
+    }
+    public override string ToString()
+    {
+        string result = string.Empty;
+        foreach(IEnumerable<Cell> row in Rows)
+        {
+            foreach(Cell cell in row)
+            {
+                result += cell.Icon;
+            }
+            result += "\n";
+        }
+        return result;
+    }
 }

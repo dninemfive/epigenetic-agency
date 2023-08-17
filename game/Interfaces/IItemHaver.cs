@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public interface IInventory
+public interface IItemHaver
 {
     public IEnumerable<Item> Items { get; }
 }

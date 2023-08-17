@@ -13,19 +13,22 @@ public class Item : ILocationHaver
     public ItemDef Def { get; private set; }
     public string Name => Def.Name;
     public IEnumerable<Action>? Action => Def.Actions;
+    public char Icon => Def.Icon;
     public Item(ItemDef def, Location location)
     {
         Location = location;
         Def = def;
     }
 }
-public class ItemDef
+public readonly struct ItemDef
 {
-    public string Name;
-    public ActionDef? Actions;
-    public ItemDef(string name, ActionDef? actionDef = null) 
+    public readonly string Name;
+    public readonly ActionDef? Actions;
+    public readonly char Icon;
+    public ItemDef(string name, char icon, ActionDef? actionDef = null) 
     {
         Name = name;
+        Icon = icon;
         Actions = actionDef;
     }
 }

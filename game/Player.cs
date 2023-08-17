@@ -24,4 +24,5 @@ public class Player : IActor, IItemHaver
     public IActor CopyAt(Point pos) => new Player(this, pos);
     private readonly List<Item> _items = new();
     public IEnumerable<Item> Items => _items;
+    public char Icon => 'P';
 }
