@@ -15,7 +15,3 @@ public readonly struct Location
         Point = point;
     }
 }
-public interface ILocationHaver
-{
-    Location Location { get; }
-}

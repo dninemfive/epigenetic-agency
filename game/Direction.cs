@@ -17,11 +17,11 @@ public static class Directions
     public static IEnumerable<Direction> Counterclockwise => Clockwise.Reverse();
     public static (int x, int y) Offset(this Direction direction) => direction switch
     {
-        Direction.None => (0, 0),
-        Direction.Up => (0, 1),
-        Direction.Right => (1, 0),
-        Direction.Down => (0, -1),
-        Direction.Left => (-1, 0),
+        Direction.None  => (0,  0),
+        Direction.Up    => (0,  1),
+        Direction.Right => (1,  0),
+        Direction.Down  => (0, -1),
+        Direction.Left  => (-1, 0),
         _ => throw new ArgumentOutOfRangeException(nameof(direction))
     };
 }

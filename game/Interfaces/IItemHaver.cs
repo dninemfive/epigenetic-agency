@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public interface IActor : ILocationHaver
+public interface IInventory
 {
-    public Map ActOn(Map map, Action action);
+    public IEnumerable<Item> Items { get; }
 }
