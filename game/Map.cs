@@ -32,4 +32,5 @@ public class Map
                 yield return neighbor;
         }
     }
+    public IEnumerable<Cell> NeighborsOf(Cell cell) => NeighborsOf(cell.Position);
 }
