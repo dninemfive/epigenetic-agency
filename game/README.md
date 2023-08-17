@@ -1,0 +1,1 @@
+The basic model for the game to be played.

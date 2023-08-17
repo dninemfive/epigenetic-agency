@@ -1,0 +1,2 @@
+# Epigenetic Agency
+CMPM146 project creating an epigenetic algorithm to develop game AI which not only evolves with each game it plays but also learns to deal with conditions specific to certain areas or runs.
