@@ -13,7 +13,7 @@ internal class Program
         }
         Map initial = new(10,15);
         print(initial);
-        Map withPlayer = new(initial, new Dictionary<Point, Cell>()
+        Map withPlayer = new(initial, new Dictionary<Point, Node>()
         {
             { (4, 7), new(initial[4, 7], new Player(initial[4, 7].Location)) }
         });
