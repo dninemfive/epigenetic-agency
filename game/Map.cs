@@ -44,7 +44,7 @@ public class Map
                 yield return neighbor;
         }
     }
-    public IEnumerable<Cell> NeighborsOf(ILocationHaver locHaver) => NeighborsOf(locHaver.Position);
+    public IEnumerable<Cell> NeighborsOf(Cell cell) => NeighborsOf(cell.Position);
     public IEnumerable<IEnumerable<Cell>> Rows
     {
         get

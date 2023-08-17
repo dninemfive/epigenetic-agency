@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace epigeneticagency;
 public class Cell
 {
-    public Location Location { get; private set; }
     public IActor? Actor { get; private set; }
     public bool HasActor => Actor is not null;
     public Item? Item { get; private set; }

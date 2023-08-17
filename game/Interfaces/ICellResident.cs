@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public interface IActor : ILocationHaver
+public interface ICellResident
 {
-    public bool Try(Map initial, Action action, out Map? result);
-    public IActor CopyAt(Point pos);
+    public Cell Cell { get; }
+    public char Icon { get; }
 }

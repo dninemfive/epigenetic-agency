@@ -7,16 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigeneticagency;
-public class Item : ILocationHaver
+public class Item : ICellResident
 {
-    public Location Location { get; private set; }
+    public Cell Cell { get; private set; }
     public ItemDef Def { get; private set; }
     public string Name => Def.Name;
     public IEnumerable<Action>? Action => Def.Actions;
     public char Icon => Def.Icon;
-    public Item(ItemDef def, Location location)
+    public Item(ItemDef def, Cell cell)
     {
-        Location = location;
+        Cell = cell;
         Def = def;
     }
 }

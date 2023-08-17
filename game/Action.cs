@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace epigeneticagency;
 
-public delegate Map? Action(Map map, IActor source);
+public delegate Map? Action(Actor source);
 public delegate Action DirectedAction(Direction direction);
 public record ActionDef : IEnumerable<Action>
 {
@@ -32,7 +32,7 @@ public record ActionDef : IEnumerable<Action>
 }
 public static class ActionDefs
 {
-    public static readonly ActionDef Move = new(direction => delegate(Map map, IActor actor)
+    public static readonly ActionDef Move = new(direction => delegate(Actor actor)
             {
                 Dictionary<Point, Cell> changes = new();
                 Cell source = actor.Cell;
