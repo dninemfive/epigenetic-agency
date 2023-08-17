@@ -43,7 +43,7 @@ public class Map : IEnumerable<Cell>
                 yield return neighbor;
         }
     }
-    public IEnumerable<Cell> NeighborsOf(Cell cell) => NeighborsOf(cell.Position);
+    public IEnumerable<Cell> NeighborsOf(ILocationHaver locHaver) => NeighborsOf(locHaver.Position);
 
     public IEnumerator<Cell> GetEnumerator()
         => GetEnumerator();

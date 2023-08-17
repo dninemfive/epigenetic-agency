@@ -8,4 +8,5 @@ namespace epigeneticagency;
 public interface IActor : ILocationHaver
 {
     public bool Try(Map initial, Action action, out Map? result);
+    public IActor CopyAt(Point pos);
 }
