@@ -6,9 +6,9 @@ def ask_for_input(resources: dict[str, Any], failMsg: str) -> Any:
     while key not in resources.keys():
         key = input()
         if key in resources.keys(): break
-        print(failMsg, key, ". Please select one of", resources.keys())
+        print(failMsg, key, ". Please select one of", list_str(resources.keys()))
     result: Any = resources[key]
-    print("You have selected", result)
+    print("You have selected", key)
     return result
 
 def list_str(items: enumerate) -> str:
@@ -20,7 +20,7 @@ def list_str(items: enumerate) -> str:
         else:
             result = result + ", " + item
         first = False
-    return result
+    return "[" + result + "]"
 
 # ====================================
 
@@ -72,19 +72,23 @@ class Decider(object):
     
 class Decider_CLI(Decider):
     def select_weapon(self, weapons: dict[str, Weapon], enemies: list[Enemy]) -> Weapon:
-        print("You have the following weapons:", list_str(weapons.keys()), "and the following enemies:", list_str([x.name for x in enemies]))
+        print("You have the following weapons:", list_str(weapons.keys()), "and the following enemies:", list_str([x.name for x in enemies if x.hp > 0]))
         return ask_for_input(weapons, "You don't have a weapon called")
     
     def target_enemies(self, weapon: Weapon, enemies: dict[str, Enemy]) -> list[Enemy]:
-        print("You have", weapon.attacks_per_turn, "attacks available with", weapon.name, ", and the following potential targets:", list_str(enemies))
-        availableEnemies: list[Enemy] = list(enemies.values())
+        print("You have", weapon.attacks_per_turn, "attacks available with", weapon.name, ", and the following potential targets:", list_str([x.name for x in enemies.values() if x.hp > 0]))
+        availableEnemies: list[Enemy] = [x for x in enemies.values() if x.hp > 0]
         result: list[Enemy] = []
         remaining_attacks = weapon.attacks_per_turn
         while remaining_attacks > 0 and len(availableEnemies) > 0:
-            print("You can attack the following enemies:", availableEnemies)
+            if len(availableEnemies) == 1:
+                result.append(availableEnemies[0])
+                break
+            print("You can attack the following enemies:", list_str([x.name for x in availableEnemies]))
             enemy: Enemy = ask_for_input(enemies, "There isn't an enemy called")
             result.append(enemy)
             availableEnemies.remove(enemy)
+            remaining_attacks -= 1
         return result
 
 class Player(object):
@@ -109,6 +113,7 @@ class Player(object):
             return
         if weapon.required_ammo is not None:
             self.ammo[weapon.required_ammo] -= 1
+            print("Using", weapon.name, "consumes 1", weapon.required_ammo, ", leaving you with", self.ammo[weapon.required_ammo])
         result: int = enemy.take_hit(weapon)
         print("Player deals", result, "damage to", enemy.name, "leaving them with", enemy.hp, "hp")
         # todo: update epigenome with damage taken
