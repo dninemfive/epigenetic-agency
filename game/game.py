@@ -86,7 +86,6 @@ class Decider_CLI(Decider):
             print("That's not an available target.")
             choice = input()
         chosenEnemy: EnemyName = choice
-        remainingEnemies.pop(choice)
         print("You have the following ammo available:")
         for k, v in player.ammo.items():
             print(" ",k,":",v)
@@ -117,6 +116,9 @@ class Player(object):
         while self.remainingMoves > 0 and any(remainingEnemies):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
             dmg: int = enemies[target].take_hit(damageType)
+            if enemies[target].hp <= 0:
+                enemies.pop(target)
+                remainingEnemies.pop(target)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
             print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
