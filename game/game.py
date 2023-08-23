@@ -69,7 +69,7 @@ class Enemy(object):
         return self.template.damage_type
 
     def __str__(self) -> str:
-        return "Enemy(template: " + self.template.name + ", name: " + self.name + ", hp: " + str(self.hp) + "/" + str(self.template.base_hp) + ")"
+        return self.name + " (" + self.template.name + ", " + str(self.hp) + "/" + str(self.template.base_hp) + ")"
 
 class Decider(object):
     """
@@ -119,7 +119,7 @@ class Player(object):
             dmg: int = enemies[target].take_hit(damageType)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("You attack", target, "with", damageType, "dealing", dmg, "damage!")
+            print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> None:
         self.hp -= 1 + damage_modifier_for(damageType, "Fire") # todo: player damage type weights based on genetics?
@@ -130,7 +130,7 @@ class Player(object):
         self.ammo[damageType] -= 1
 
     def __str__(self) -> str:
-        return "Player(hp: " + str(self.hp) + ")"
+        return "Player(" + str(self.hp) + ")"
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
