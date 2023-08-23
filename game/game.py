@@ -24,7 +24,7 @@ def list_str(items: enumerate) -> str:
 
 # ====================================
 
-DamageType = str | None
+DamageType = str
 EnemyName = str
 Attack = tuple[EnemyName, DamageType]
 
@@ -38,7 +38,7 @@ DAMAGE_TYPE_BONUSES: dict[DamageType, DamageType] = {
 }
 
 def damage_modifier_for(attackerType: DamageType, defenderType: DamageType):
-    if attackerType not in DAMAGE_TYPE_BONUSES: return 0
+    if attackerType not in DAMAGE_TYPE_BONUSES or defenderType not in DAMAGE_TYPE_BONUSES: return 0
     if DAMAGE_TYPE_BONUSES[attackerType] == defenderType: return 1
     if DAMAGE_TYPE_BONUSES[defenderType] == attackerType: return -1
     return 0 
@@ -86,13 +86,14 @@ class Decider_CLI(Decider):
         chosenEnemy: EnemyName = choice
         remainingEnemies.remove(choice)
         print("You have the following ammo available:")
-        for k, v in player.ammo:
-            print("\n",k,":",v)
+        for k, v in player.ammo.items():
+            print(" ",k,":",v)
         print('You can also say "none" to attack without a damage type.')
         choice: str = input()
-        while choice not in [x for x in player.ammo.keys() if player.ammo[x] > 0]:
+        while choice not in [x for x in player.ammo.keys() if player.ammo[x] > 0] and not (choice == "none"):
             print("That's not an available ammo type.")
             choice = input()
+        if choice == "none": choice = None
         chosenDamageType: DamageType = choice
         return (chosenEnemy, chosenDamageType)
 
@@ -103,7 +104,7 @@ class Player(object):
         self.hp: int = 10
         # how many times the player can use a damage type
         self.ammo: dict[DamageType, int] = dict()
-        for k, _ in DAMAGE_TYPE_BONUSES:
+        for k, _ in DAMAGE_TYPE_BONUSES.items():
             self.ammo[k] = 5
         # the thing which decides how the player plays
         self.decider = decider
@@ -114,10 +115,16 @@ class Player(object):
         while self.remainingMoves > 0 and any(remainingEnemies):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
             enemies[target].take_hit(damageType)
-            self.ammo[damageType] -= 1
+            self.consume_ammo(damageType)
+            self.remainingMoves -= 1
 
     def take_hit(self, damageType: DamageType) -> None:
         self.hp -= damage_modifier_for(damageType, "Fire") # todo: player damage type weights based on genetics?
+
+    def consume_ammo(self, damageType: DamageType) -> None:
+        if damageType not in self.ammo:
+            return
+        self.ammo[damageType] -= 1
 
     def __str__(self) -> str:
         return "Player(hp: " + self.hp + ")"
