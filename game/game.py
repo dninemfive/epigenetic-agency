@@ -16,9 +16,9 @@ def list_str(items: enumerate) -> str:
     first: bool = True
     for item in items:
         if first: 
-            result = item
+            result = str(item)
         else:
-            result = result + ", " + item
+            result = str(result) + ", " + str(item)
         first = False
     return "[" + result + "]"
 
@@ -59,8 +59,10 @@ class Enemy(object):
         self.name = name
         self.hp = template.base_hp
 
-    def take_hit(self, type: DamageType):
-        self.hp -= 1 + damage_modifier_for(type, self.damage_type)
+    def take_hit(self, type: DamageType) -> int:
+        amt: int = 1 + damage_modifier_for(type, self.damage_type)
+        self.hp -= amt
+        return amt
 
     @property
     def damage_type(self):
@@ -77,14 +79,14 @@ class Decider(object):
         raise NotImplementedError()
     
 class Decider_CLI(Decider):    
-    def choose_attack(self, player, remainingEnemies: list[Enemy]) -> tuple[EnemyName, DamageType]:
-        print("You have", player.remainingMoves, "remaining moves. Which enemy would you like to attack?", list_str(remainingEnemies))
+    def choose_attack(self, player, remainingEnemies: dict[EnemyName, Enemy]) -> tuple[EnemyName, DamageType]:
+        print("You have", player.remainingMoves, "remaining moves. Which enemy would you like to attack?", list_str(remainingEnemies.values()))
         choice: str = input()
         while choice not in remainingEnemies:
             print("That's not an available target.")
             choice = input()
         chosenEnemy: EnemyName = choice
-        remainingEnemies.remove(choice)
+        remainingEnemies.pop(choice)
         print("You have the following ammo available:")
         for k, v in player.ammo.items():
             print(" ",k,":",v)
@@ -110,16 +112,17 @@ class Player(object):
         self.decider = decider
 
     def do_attacks(self, enemies: dict[EnemyName, Enemy]) -> None:
-        remainingEnemies: list[EnemyName] = [x.name for x in enemies.values() if x.hp > 0]
+        remainingEnemies: dict[EnemyName, Enemy] = enemies.copy()
         self.remainingMoves: int = 3
         while self.remainingMoves > 0 and any(remainingEnemies):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
-            enemies[target].take_hit(damageType)
+            dmg: int = enemies[target].take_hit(damageType)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
+            print("You attack", target, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> None:
-        self.hp -= damage_modifier_for(damageType, "Fire") # todo: player damage type weights based on genetics?
+        self.hp -= 1 + damage_modifier_for(damageType, "Fire") # todo: player damage type weights based on genetics?
 
     def consume_ammo(self, damageType: DamageType) -> None:
         if damageType not in self.ammo:
@@ -127,22 +130,25 @@ class Player(object):
         self.ammo[damageType] -= 1
 
     def __str__(self) -> str:
-        return "Player(hp: " + self.hp + ")"
+        return "Player(hp: " + str(self.hp) + ")"
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
     A player fights enemies until either the player is dead or all the enemies are dead.
     """
-    def do_turn():
+    def do_turn(turnNumber: int):
+        print("Turn", turnNumber, ":\n",player, "\n", list_str(enemies.values()))
         player.do_attacks(enemies)
         for enemy in [x for x in enemies.values() if x.hp > 0]:
-            player.take_hit(enemy.damage_type)
-
+            dmg: int = player.take_hit(enemy.damage_type)
+            print(enemy.name,"attacks player for", dmg, "damage!")
     print(player.hp)
     for enemy in enemies.values():
         print(enemy.hp)
+    ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
-        do_turn()
+        ct += 1
+        do_turn(ct)
     # player heals hp?
 
 if __name__ == "__main__":
