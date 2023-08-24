@@ -5,10 +5,10 @@ class DamageType(object):
     
     def damage_against(self, other):
         if self.strong_against(other):
-            return 2
+            return 3
         if other.strong_against(self):
-            return 0
-        return 1
+            return 1
+        return 2
     
     def __str__(self):
         return self.name
