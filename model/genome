@@ -1,0 +1,8 @@
+from gene import Gene
+
+class Genome(object):
+    def __init__(self, genes: set[Gene] = [], fitness: int = 0):
+        self.genes: set[Gene] = genes
+        self.fitness = fitness
+    def cross_with(self, other):
+        pass
