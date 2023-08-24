@@ -1,5 +1,4 @@
-from types import DamageType, EnemyName
-from damageTypes import damage_modifier_for
+from damage_type import damage_for
 
 class EnemyTemplate(object):
     def __init__(self, name: str, base_hp: int, damage_type: str = None):
@@ -12,13 +11,13 @@ ENEMY_TEMPLATES: dict[str, EnemyTemplate] = {
 }
 
 class Enemy(object):
-    def __init__(self, template: EnemyTemplate, name: EnemyName):
+    def __init__(self, template: EnemyTemplate, name: str):
         self.template = template
         self.name = name
         self.hp = template.base_hp
 
-    def take_hit(self, type: DamageType) -> int:
-        amt: int = 1 + damage_modifier_for(type, self.damage_type)
+    def take_hit(self, type: str) -> int:
+        amt: int = damage_for(type, self.damage_type)
         self.hp -= amt
         return amt
 
