@@ -1,10 +1,10 @@
-from decider import Decider
 from enemy import Enemy
-from damage_type import DAMAGE_TYPES, damage_for, DamageType
+from gene import Gene, Genome
+from damage_type import DAMAGE_TYPES, DAMAGE_TYPE_GENES, damage_for, DamageType
+import random
 
 class Player(object):
-    # todo: genes determine these properties
-    def __init__(self, decider: Decider):
+    def __init__(self, decider):
         # how many hits the player can take until they die
         self.hp: int = 10
         # how many times the player can use a damage type
@@ -36,10 +36,49 @@ class Player(object):
         self.ammo[damageType] -= 1
 
     @property
-    def available_ammo_types(self) -> enumerate[str]:
-        yield None
-        for item in [k for k, v in self.ammo.items() if v > 0]:
-            yield item
-
+    def available_ammo_types(self):
+        result = [None]
+        result.extend([k for k, v in self.ammo.items() if v > 0])
+        return result
+    
     def __str__(self) -> str:
         return "Player(" + str(self.hp) + ")"
+    
+
+#
+
+class Decider(object):
+    """
+    Interface for the concept of selecting a weapon and targets during a turn
+    """
+    def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
+        raise NotImplementedError()
+    
+class Decider_CLI(Decider):    
+    def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
+        print("You have", player.remainingMoves, "remaining moves. Which enemy would you like to attack?", list_str(remainingEnemies.values()))
+        choice: str = input()
+        while choice not in remainingEnemies:
+            print("That's not an available target.")
+            choice = input()
+        chosenEnemy: str = choice
+        print("You have the following ammo available:")
+        for k, v in player.ammo.items():
+            print(" ",k,":",v)
+        print('You can also say "none" to attack without a damage type.')
+        choice: str = input()
+        while choice not in player.available_ammo_types and not (choice == "none"):
+            print("That's not an available ammo type.")
+            choice = input()
+        if choice == "none": 
+            return (chosenEnemy, None)
+        return (chosenEnemy, DAMAGE_TYPES[choice])
+    
+class Decider_Genome(Decider):
+    def __init__(self):
+        self.genome = Genome({ v: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
+
+    def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
+        result_enemy = random.choice([x for x in remainingEnemies.keys()])
+        result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])
+        return (result_enemy, result_type)

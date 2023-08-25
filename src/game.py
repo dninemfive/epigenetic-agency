@@ -1,7 +1,6 @@
-from player import Player
+from player import Player, Decider_Genome
 from enemy import Enemy, ENEMY_TEMPLATES
 from utils import list_str
-from decider import Decider_CLI
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
@@ -23,9 +22,9 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     # player heals hp?
 
 if __name__ == "__main__":
-    player: Player = Player(Decider_CLI())
+    player: Player = Player(Decider_Genome())
     enemies: dict[str, Enemy] = {}
     for i in range(2):
-        name: str = "Zombie " + str(i + 1)
+        name: str = str(i + 1)
         enemies[name] = Enemy(ENEMY_TEMPLATES["Zombie"], name)
     battle(player, enemies)

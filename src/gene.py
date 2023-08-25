@@ -1,6 +1,7 @@
-from epigene import Epigene
 import random
 from utils import weighted_avg
+
+# ================= GENE =================
 
 class GeneTemplate(object):
     def __init__(self, name: str):
@@ -43,3 +44,39 @@ def mutate(gene: Gene, chance: float = 0.05, magnitude: float = 0.1) -> Gene:
     assert magnitude >= 0
     if random.random() < chance:
         return Gene(gene.template, gene.weight + (random.random() * magnitude) - magnitude / 2)
+    
+# =================  EPIGENE =================
+
+class Epigene(object):
+    def __init__(self, parent: Gene, expression: float = 0.5):
+        # the gene this epigene affects
+        self.parent: Gene = parent
+        # to what degree the epigene affects the parent gene.
+        # plug into a sigmoid curve, probably
+        self.expression: float = expression
+
+    def receive_signal(self, delta: float = 0.5):
+        pass
+
+    def __str__(self):
+        return "Epigene for " + str(self.parent)
+
+# =================  GENOME  =================                    
+class Genome(object):
+    def __init__(self, genes: dict[GeneTemplate, Gene] = [], fitness: int = 0):
+        self.genes: dict[GeneTemplate, Gene] = genes
+        self.fitness = fitness
+        self.previous_state = None
+
+    def complete_battle(self):
+        self.fitness += 1    
+
+    def update_epigene(self, template: GeneTemplate):
+        pass
+
+def cross_genome(a: Genome, b: Genome) -> Genome:
+    new_genes: dict[GeneTemplate, Gene] = set()
+    ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
+    for k, _ in a.genes:
+        new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
+    return Genome(new_genes)
