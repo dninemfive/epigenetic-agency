@@ -1,9 +1,18 @@
 from epigene import Epigene
 import random
+from utils import weighted_avg
 
 class GeneTemplate(object):
     def __init__(self, name: str):
-        pass
+        self.name = name
+
+    # https://stackoverflow.com/a/3076987
+    # implementing these so the type can be used as a dictionary key
+    def __eq__(self, other) -> bool:
+        return isinstance(other, GeneTemplate) and self.name == other.name
+    
+    def __hash__(self):
+        return hash(self.name)
 
 GENE_TEMPLATES = [
     # epigenome weight:         amount the epigenome factors into decisions using genes
@@ -26,9 +35,10 @@ class Gene(object):
         return self.template.name
 
 def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
-    if a.name != b.name:
-        raise KeyError("Cannot cross two unrelated genes!")
-    return Gene(a.template, (ratio * a.weight) + ((1 - ratio) * b.weight))
+    assert a.name == b.name
+    return Gene(a.template, weighted_avg(a.weight, b.weight, ratio))
 
 def mutate(gene: Gene, chance: float = 0.05, magnitude: float = 0.1) -> Gene:
-    pass
+    assert magnitude >= 0
+    if random.random() < chance:
+        return Gene(gene.template, gene.weight + (random.random() * magnitude) - magnitude / 2)

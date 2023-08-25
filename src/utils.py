@@ -20,3 +20,7 @@ def list_str(items: enumerate) -> str:
             result = str(result) + ", " + str(item)
         first = False
     return "[" + result + "]"
+
+def weighted_avg(a: float, b: float, ratio: float):
+    assert ratio >= 0 and ratio <= 1
+    return (a * ratio) + (b * (1 - ratio))
