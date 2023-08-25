@@ -35,5 +35,11 @@ class Player(object):
             return
         self.ammo[damageType] -= 1
 
+    @property
+    def available_ammo_types(self) -> enumerate[str]:
+        yield None
+        for item in [k for k, v in self.ammo.items() if v > 0]:
+            yield item
+
     def __str__(self) -> str:
         return "Player(" + str(self.hp) + ")"

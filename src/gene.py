@@ -22,6 +22,7 @@ GENE_TEMPLATES = [
     # gene for how much the player likes to heal
     # gene which changes the weights of attacking/healing based on number of battles fought??
     # ? gene for how much the player likes to scavenge ? (if loot is implemented)
+    # gene(s) for targeting enemies based on hp and damagetype
 ]
 
 class Gene(object):
