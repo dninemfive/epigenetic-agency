@@ -19,6 +19,7 @@ class DamageType(object):
         return self.name
     
 _types: dict[DamageType, DamageType] = {
+    "None": None,
     "Fire": "Frost",
     "Water": "Fire",
     "Earth": "Water",

@@ -1,20 +1,29 @@
 from enemy import Enemy
 from gene import Gene, Genome
 from damage_type import DAMAGE_TYPES, DAMAGE_TYPE_GENES, damage_for, DamageType
+from utils import list_str
 import random
 
 class Player(object):
+    """
+    This class represents the agent playing the game. It tracks the ammo and HP the agent has, and uses a
+    Decider to make decisions in-game.
+    """
     def __init__(self, decider):
         # how many hits the player can take until they die
         self.hp: int = 10
         # how many times the player can use a damage type
-        self.ammo: dict[DamageType, int] = dict()
+        self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
             self.ammo[k] = 5
+        self.ammo["None"] = "∞"
         # the thing which decides how the player plays
         self.decider = decider
 
     def do_attacks(self, enemies: dict[str, Enemy]) -> None:
+        """
+        Handles all the actions the agent does on their turn.
+        """
         remainingEnemies: dict[str, Enemy] = enemies.copy()
         self.remainingMoves: int = 3
         while self.remainingMoves > 0 and any(remainingEnemies):
@@ -28,33 +37,50 @@ class Player(object):
             print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> None:
+        """
+        Represents the player taking damage. Made its own method because we'll likely want to send epigenome signals
+        when this occurs.
+        """
         self.hp -= damage_for(damageType, "Fire") # todo: player damage type weights based on genetics?
 
     def consume_ammo(self, damageType: DamageType) -> None:
-        if damageType not in self.ammo:
+        """
+        Decrements the amount of ammo the player has for a specified damage type. Made its own method because we'll
+        likely want to send epigenome signals when this occurs.
+        """
+        if damageType not in self.ammo or damageType.name == "None":
             return
         self.ammo[damageType] -= 1
 
     @property
     def available_ammo_types(self):
-        result = [None]
-        result.extend([k for k, v in self.ammo.items() if v > 0])
-        return result
+        """
+        What ammo types are available for the player to use. "None" is always an option.
+        """
+        return [k for k, v in self.ammo.items() if k == "None" or v > 0]
     
     def __str__(self) -> str:
+        """
+        Represents the player when printing the game state.
+        """
         return "Player(" + str(self.hp) + ")"
     
-
 #
 
 class Decider(object):
     """
-    Interface for the concept of selecting a weapon and targets during a turn
+    Interface for the concept of selecting a weapon and targets during a turn. This base class does nothing, it is simply a template to override.
     """
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
+        """
+        Given the game state, i.e. the player and enemies, return what attack to use.
+        """
         raise NotImplementedError()
     
-class Decider_CLI(Decider):    
+class Decider_CLI(Decider):
+    """
+    A Decider which asks the human user what to do each turn. Mainly for debugging the game.
+    """
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         print("You have", player.remainingMoves, "remaining moves. Which enemy would you like to attack?", list_str(remainingEnemies.values()))
         choice: str = input()
@@ -75,6 +101,9 @@ class Decider_CLI(Decider):
         return (chosenEnemy, DAMAGE_TYPES[choice])
     
 class Decider_Genome(Decider):
+    """
+    A Decider which uses the genome to make decisions about what to do.
+    """
     def __init__(self):
         self.genome = Genome({ v: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
 

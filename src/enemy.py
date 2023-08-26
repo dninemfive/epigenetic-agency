@@ -1,6 +1,9 @@
 from damage_type import damage_for
 
 class EnemyTemplate(object):
+    """
+    A template for 
+    """
     def __init__(self, name: str, base_hp: int, damage_type: str = None):
         self.name = name
         self.base_hp: int = base_hp
