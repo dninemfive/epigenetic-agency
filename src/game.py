@@ -1,8 +1,9 @@
-from player import Player, Decider_Genome
-from enemy import Enemy, ENEMY_TEMPLATES, EnemyTemplate
+from player import Player, Decider_Genome, DEFAULT_AMMO
+from enemy import Enemy, EnemyTemplate, ENEMY_TEMPLATES
 from utils import list_str
 from gene import Genome, cross_genome
 import random
+from typing import Any
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
@@ -20,9 +21,10 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
         do_turn(ct)
     if isinstance(player.decider, Decider_Genome): 
         player.decider.genome.complete_battle()
+    # refill ammo
     for k in player.ammo.keys():
         if k == "None": continue
-        player.ammo[k] = 5
+        player.ammo[k] = DEFAULT_AMMO
     # player heals hp?
 
 def battles_until_death(player: Player) -> Genome:
@@ -59,7 +61,8 @@ if __name__ == "__main__":
         next_genome: Genome = new_genome(gene_pool)
         mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
         new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
-        if len(new_gene_pool) > 1:
+        if len(new_gene_pool) > 10:
+            print("Dropping",list_str([x for x in gene_pool if x not in new_gene_pool]))
             gene_pool = new_gene_pool
     print("Final gene pool: ")
     i: int = 1

@@ -4,6 +4,8 @@ from damage_type import DAMAGE_TYPES, DAMAGE_TYPE_GENES, damage_for, DamageType
 from utils import list_str
 import random
 
+DEFAULT_AMMO: int = 10
+
 class Player(object):
     """
     This class represents the agent playing the game. It tracks the ammo and HP the agent has, and uses a
@@ -15,7 +17,7 @@ class Player(object):
         # how many times the player can use a damage type
         self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
-            self.ammo[k] = 5
+            self.ammo[k] = DEFAULT_AMMO
         self.ammo["None"] = "∞"
         # the thing which decides how the player plays
         self.decider = decider

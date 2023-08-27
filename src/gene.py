@@ -1,5 +1,6 @@
 import random
 from utils import weighted_avg
+from typing import Any
 
 # ================= GENE =================
 
@@ -7,8 +8,10 @@ class GeneTemplate(object):
     """
     A template for each gene. Basically unused right now, but might be useful if we want to give them default weights or something.
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str, epigeneSignalHandler: callable):
         self.name = name
+        # more precisely, callable(Any, float) -> float
+        self.epigeneSignalHandler = epigeneSignalHandler
 
     # https://stackoverflow.com/a/3076987
     # implementing these so the type can be used as a dictionary key
@@ -23,13 +26,19 @@ class GeneTemplate(object):
 
 GENE_TEMPLATES = [
     # epigenome weight:         amount the epigenome factors into decisions using genes
+    GeneTemplate("Epigenome Weight", None),
     # epigenome adaptability:   how strongly the epigenome reacts to signals
+    GeneTemplate("Epigenome Adaptability", None),
     # epigenome central bias:   how strongly the epigenome returns to expression = 0.5
+    GeneTemplate("Epigenome Central Bias", None),
     # gene for how much the player likes to attack
+    # signal: float = amount of damage done by an attack
+    GeneTemplate("Attack Bias", lambda f: (f - 2) / 100),
     # gene for how much the player likes to heal
-    # gene which changes the weights of attacking/healing based on number of battles fought??
+    # gene which changes the weights of attacking/healing based on hp??
     # ? gene for how much the player likes to scavenge ? (if loot is implemented)
     # gene(s) for targeting enemies based on hp and damagetype
+    GeneTemplate("Target Weak Enemies", None)
     # prioritize enemies which do more damage to us
 ]
 
@@ -39,7 +48,7 @@ class Gene(object):
     """
     def __init__(self, template: GeneTemplate, weight: float = 0.5):
         self.template = template
-        self.epigene = Epigene(self)    
+        self.epigene = Epigene(self, template.epigeneSignalHandler)    
         self.weight = weight
 
     @property
@@ -47,7 +56,7 @@ class Gene(object):
         return self.template.name
     
     def __str__(self):
-        return "<" + self.name + ":" + str(self.weight) + ">"
+        return "<" + self.name + ":" + str(int(self.weight * 100)) + ">"
 
 def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     """
@@ -75,15 +84,17 @@ class Epigene(object):
     One Epigene is attached to each Gene, and it modifies how much that gene is expressed based on feedback after each event,
     such as the amount of damage dealt by or to the player.
     """
-    def __init__(self, parent: Gene, expression: float = 0.5):
+    def __init__(self, parent: Gene, signalHandler: callable = None, expression: float = 0.5):
         # the gene this epigene affects
         self.parent: Gene = parent
+        self.signalHandler = signalHandler
         # to what degree the epigene affects the parent gene.
         # plug into a sigmoid curve, probably
         self.expression: float = expression
 
-    def receive_signal(self, delta: float = 0.5):
-        pass
+    def receive_signal(self, signal: Any, delta: float = 0.5) -> None:
+        if self.signalHandler is None: return
+        expression += self.signalHandler(signal, delta)
 
     def __str__(self):
         return "Epigene for " + str(self.parent)
