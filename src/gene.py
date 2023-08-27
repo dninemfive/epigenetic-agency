@@ -6,50 +6,6 @@ from action import Action, ActionResult, possible_actions
 from damage_type import DamageType
 import action_evaluators
 
-# ================= GENE =================
-
-
-class Gene(object):
-    """
-    The basic unit of the genetic model. Genes are used to weight decisions for a weighted random selection.
-    """
-    def __init__(self, name: str, _weight: float = 0.5):
-        self.name = name
-        self._weight = _weight
-
-    # used so that ActionGene can override this with epigene weight
-    @property
-    def weight(self):
-        return self._weight
-    
-    def __str__(self):
-        return "<" + self.name + ":" + str(int(self.weight * 100)) + ">"
-
-def cross_genes(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
-    """
-    Merge the values of two genes, representing crossing over in genetics.
-    """
-    assert a.name == b.name
-    print(f"Cross_genes({a.__class__}, {b.__class__})")
-    assert a.__class__ == b.__class__
-    combined_weight: float = weighted_avg(a.weight, b.weight, ratio)
-    if isinstance(a, ActionGene):
-        # take the epigene from the better class without crossing, for now
-        return ActionGene(a.name, combined_weight, a.action_evaluator, a.epigene if ratio > 1 else b.epigene)
-    return Gene(a.name, combined_weight)
-
-def mutate_gene(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
-    """
-    Perturb the value of a gene to some degree, representing random mutations in genetics.
-    """
-    assert magnitude >= 0
-    if random.random() < chance:
-        new_weight: float = clamp(gene.weight + (random.random() * magnitude) - magnitude / 2)
-        if isinstance(gene, ActionGene):
-            return ActionGene(gene.name, new_weight, gene.action_evaluator, gene.epigene)
-        return Gene(gene.name, new_weight)
-    return Gene(gene.name, gene.weight)
-    
 # =================  EPIGENE =================
 
 class Epigene(object):
@@ -57,9 +13,7 @@ class Epigene(object):
     One Epigene is attached to each Gene, and it modifies how much that gene is expressed based on feedback after each event,
     such as the amount of damage dealt by or to the player.
     """
-    def __init__(self, parent: Gene, expression: float = 0.5):
-        # the gene this epigene affects
-        self.parent: Gene = parent
+    def __init__(self, expression: float = 0.5):
         # to what degree the epigene affects the parent gene.
         # plug into a sigmoid curve, probably
         self.expression: float = expression
@@ -71,22 +25,54 @@ class Epigene(object):
         self.expression = weighted_avg(self.expression, 0.5, central_bias)
 
     def __str__(self):
-        return "Epigene for " + str(self.parent)
-    
-class ActionGene(Gene):
-    def __init__(self, name: str, _weight: float, action_evaluator: callable, epigene: Epigene = None):
-        super().__init__(name, _weight)
-        self.epigene = epigene if epigene is not None else Epigene(self)
-        self.action_evaluator = action_evaluator
-        self.epigene.parent = self
+        # https://zetcode.com/python/fstring/
+        return f"<{self.expression:2%}>"
 
-    # the gene tells you how good an action will be and then the epigenome receives feedback on whether that was true
-    def evaluate_action(self, player, enemies, action: Action) -> float:
-        return self.action_evaluator(player, enemies, action)
+# ================= GENE =================
+
+
+class Gene(object):
+    """
+    The basic unit of the genetic model. Genes are used to weight decisions for a weighted random selection.
+    """
+    def __init__(self, name: str, _weight: float = 0.5, action_evaluator: callable = None, epigene: Epigene = None):
+        self.name = name
+        self._weight = _weight
+        self.action_evaluator = action_evaluator
+        self.epigene = epigene if epigene is not None else Epigene()
 
     @property
     def weight(self):
-        return self._weight * self.epigene.expression
+        return self._weight if self.epigene is None else self._weight * self.epigene.expression
+    
+    def evaluate_action(self, player, enemies, action: Action) -> float:
+        if self.action_evaluator is None:
+            raise NotImplementedError(f"This gene does not have an action evaluator!")
+        return self.action_evaluator(player, enemies, action)
+    
+    def __str__(self):
+        result: str = f"<{self.name}:{self._weight:2%}"
+        if self.epigene is not None:
+            result += str(self.epigene)
+        return f"{result}>"
+
+def cross_genes(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
+    """
+    Merge the values of two genes, representing crossing over in genetics.
+    """
+    assert a.name == b.name
+    combined_weight: float = weighted_avg(a.weight, b.weight, ratio)
+    return Gene(a.name, combined_weight, a.action_evaluator, a.epigene if ratio > 1 else b.epigene)
+
+def mutate_gene(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
+    """
+    Perturb the value of a gene to some degree, representing random mutations in genetics.
+    """
+    assert magnitude >= 0
+    if random.random() < chance:
+        new_weight: float = clamp(gene._weight + (random.random() * magnitude) - magnitude / 2)
+        return Gene(gene.name, new_weight, gene.action_evaluator, gene.epigene)
+    return Gene(gene.name, gene._weight, gene.action_evaluator, gene.epigene)
 
 # =================  GENOME  =================                    
 class Genome(object):
@@ -123,8 +109,8 @@ class Genome(object):
             gene.epigene.receive_feedback(feedback, self.genes["Epigene Adaptability"].weight)
 
     @property
-    def action_genes(self) -> list[ActionGene]:
-        return [x for x in self.genes.values() if isinstance(x, ActionGene)]
+    def action_genes(self) -> list[Gene]:
+        return [x for x in self.genes.values() if x.action_evaluator is not None and x.epigene is not None]
     
     def default():
         normal_genes = [
@@ -134,7 +120,7 @@ class Genome(object):
             Gene("Mutation Chance", 0.25),
             Gene("Mutation Magnitude", 0.1)
         ]
-        action_genes = [ActionGene(x.__name__, 0.5, x) for x in action_evaluators.ALL]
+        action_genes = [Gene(x.__name__, 0.5, x) for x in action_evaluators.ALL]
         default_gene_dict: dict[str, Gene] = {}
         for gene in normal_genes:
             default_gene_dict[gene.name] = gene
@@ -157,7 +143,6 @@ def cross(a: Genome, b: Genome) -> Genome:
     new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
-        print(k)
         new_genes[k] = mutate_gene(cross_genes(a.genes[k], b.genes[k], ratio),\
                                     chance=weighted_avg(a.genes["Mutation Chance"].weight,b.genes["Mutation Chance"].weight, ratio),\
                                     magnitude=weighted_avg(a.genes["Mutation Magnitude"].weight, b.genes["Mutation Magnitude"].weight, ratio))
