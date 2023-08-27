@@ -11,7 +11,7 @@ class EnemyTemplate(object):
     
 ENEMY_TEMPLATES: dict[str, EnemyTemplate] = {
     "Zombie": EnemyTemplate("Zombie", 3, None),
-    "Skeleton": EnemyTemplate("Skeleton", 2, DamageType("Skeleton", "Fire"))
+    "Skeleton": EnemyTemplate("Skeleton", 2, DamageType("Frost", "Lightning"))
 }
 
 class Enemy(object):

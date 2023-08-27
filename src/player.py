@@ -11,7 +11,7 @@ class Player(object):
     """
     def __init__(self, decider):
         # how many hits the player can take until they die
-        self.hp: int = 10
+        self.hp: int = 100
         # how many times the player can use a damage type
         self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
@@ -28,22 +28,25 @@ class Player(object):
         self.remainingMoves: int = 3
         while self.remainingMoves > 0 and any(remainingEnemies):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
-            dmg: int = enemies[target].take_hit(damageType)
-            if enemies[target].hp <= 0:
+            targetedEnemy: Enemy = remainingEnemies[target]
+            dmg: int = targetedEnemy.take_hit(damageType)
+            if targetedEnemy.hp <= 0:
                 enemies.pop(target)
                 remainingEnemies.pop(target)
+                print("Enemy", targetedEnemy, "died!")
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
+            print("Player attacks", targetedEnemy, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> None:
         """
         Represents the player taking damage. Made its own method because we'll likely want to send epigenome signals
         when this occurs.
         """
-        
-        self.hp -= damage_for(damageType, "Fire") # todo: player damage type weights based on genetics?
-
+        damage_taken = damage_for(damageType, DamageType("Fire", "Frost")) # todo: player damage type weights based on genetics?
+        self.hp -= damage_taken
+        return damage_taken
+    
     def consume_ammo(self, damageType: DamageType) -> None:
         """
         Decrements the amount of ammo the player has for a specified damage type. Made its own method because we'll
@@ -112,6 +115,7 @@ class Decider_Genome(Decider):
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         result_enemy = random.choice([x for x in remainingEnemies.keys()])
         # random.choices returns a list apparently, so get the first item
+
         enemy_type = remainingEnemies[result_enemy].damage_type  # Assuming remainingEnemies is a list of Enemy objects
         self.adapt_genome(enemy_type)
     
