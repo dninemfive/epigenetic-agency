@@ -10,16 +10,20 @@ def ask_for_input(resources: dict[str, Any], failMsg: str) -> Any:
     print("You have selected", key)
     return result
 
-def list_str(items: enumerate) -> str:
+def list_str(items: enumerate, print_type: bool = False, print_brackets: bool = False) -> str:
     result: str = ""
     first: bool = True
+    def type_and_str(item):
+        result = type(item).__name__ if print_type else ""
+        result += " " + str(item)
+        return result
     for item in items:
         if first: 
-            result = str(item)
+            result = type_and_str(item)
         else:
-            result = str(result) + ", " + str(item)
+            result = str(result) + ", " + type_and_str(item)
         first = False
-    return "[" + result + "]"
+    return "[" + result + "]" if print_brackets else result
 
 def weighted_avg(a: float, b: float, ratio: float):
     assert ratio >= 0 and ratio <= 1

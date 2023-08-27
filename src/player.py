@@ -34,7 +34,7 @@ class Player(object):
                 remainingEnemies.pop(target)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
+            print("\t\tPlayer attacks", target, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> int:
         """
@@ -114,6 +114,7 @@ class Decider_Genome(Decider):
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         result_enemy = random.choice([x for x in remainingEnemies.keys()])
         # random.choices returns a list apparently, so get the first item
+        # print(list_str(player.available_ammo_types, print_type=True))
         result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])[0]
         return (result_enemy, result_type)
     
