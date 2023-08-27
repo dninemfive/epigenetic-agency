@@ -36,12 +36,13 @@ class Player(object):
             self.remainingMoves -= 1
             print("Player attacks", target, "with", damageType, "dealing", dmg, "damage!")
 
-    def take_hit(self, damageType: DamageType) -> None:
+    def take_hit(self, damageType: DamageType) -> int:
         """
         Represents the player taking damage. Made its own method because we'll likely want to send epigenome signals
         when this occurs.
         """
         self.hp -= damage_for(damageType, "Fire") # todo: player damage type weights based on genetics?
+        return damage_for(damageType, "Fire")
 
     def consume_ammo(self, damageType: DamageType) -> None:
         """
@@ -104,11 +105,17 @@ class Decider_Genome(Decider):
     """
     A Decider which uses the genome to make decisions about what to do.
     """
-    def __init__(self):
-        self.genome = Genome({ v.name: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
+    def __init__(self, genome: Genome = None):
+        if genome is not None:
+            self.genome = genome
+        else:
+            self.genome = Genome({ v.name: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
 
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         result_enemy = random.choice([x for x in remainingEnemies.keys()])
         # random.choices returns a list apparently, so get the first item
         result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])[0]
         return (result_enemy, result_type)
+    
+    def __str__(self):
+        return "Decider_Genome(" + str(self.genome) + ")"

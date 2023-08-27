@@ -100,6 +100,11 @@ class Genome(object):
     def update_epigene(self, template: GeneTemplate):
         pass
 
+    def __str__(self):
+        result: str = ""
+        for v in self.genes.values():
+            result += str(v)
+
 def cross_genome(a: Genome, b: Genome) -> Genome:
     """
     Cross two genomes, merging the relevant values as well as mutating them.
