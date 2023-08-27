@@ -89,7 +89,7 @@ class Genome(object):
     """
     The collection of all the genes for one agent in the model. Used to access genes and to handle reproduction when an agent dies.
     """
-    def __init__(self, genes: dict[str, Gene] = [], fitness: int = 0):
+    def __init__(self, genes: dict[str, Gene] = [], fitness: int = 1):
         self.genes: dict[str, Gene] = genes
         self.fitness = fitness
         self.previous_state = None
@@ -111,8 +111,8 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
 
     Returns a *new* Genome, does not modify either one passed in.
     """
-    new_genes: dict[str, Gene] = set()
+    new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
-    for k, _ in a.genes:
+    for k, _ in a.genes.items():
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
     return Genome(new_genes)
