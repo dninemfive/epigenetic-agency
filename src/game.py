@@ -61,15 +61,16 @@ def new_genome(gene_pool: list[Genome]):
 if __name__ == "__main__":
     gene_pool: list[Genome] = []
     next_genome: Genome = Decider_Genome().genome
-    for i in range(1000000):
-        print("Generation",i)
+    for i in range(10000):        
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player))
         next_genome: Genome = new_genome(gene_pool)
         mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
+        # https://stackoverflow.com/a/46062115
+        log(f"Generation {i}: fitness {mean_fitness:.2f}")
         new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
         if len(new_gene_pool) > 10:
-            print("Dropping",list_str([x for x in gene_pool if x not in new_gene_pool]))
+            log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
             gene_pool = new_gene_pool
     print("Final gene pool:")
     i: int = 1

@@ -1,6 +1,7 @@
 import random
 from utils import weighted_avg
 from typing import Any
+from logger import log
 
 # ================= GENE =================
 
@@ -126,11 +127,10 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
 
     Returns a *new* Genome, does not modify either one passed in.
     """
-    print("Crossing",a,"and",b,":")
     new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
     result: Genome = Genome(new_genes)
-    print("\t",result)
+    log(f"crossing {a} and {b}: {result}", 1)
     return result

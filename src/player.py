@@ -14,7 +14,7 @@ class Player(object):
     """
     def __init__(self, decider):
         # how many hits the player can take until they die
-        self.hp: int = 10
+        self.hp: int = 25
         # how many times the player can use a damage type
         self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
