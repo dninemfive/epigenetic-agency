@@ -47,7 +47,7 @@ class Gene(object):
         return self.template.name
     
     def __str__(self):
-        return "Genome(" + self.name + ", " + str(self.weight) + ")"
+        return "<" + self.name + ":" + str(self.weight) + ">"
 
 def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     """
@@ -63,6 +63,7 @@ def mutate(gene: Gene, chance: float = 0.05, magnitude: float = 0.1) -> Gene:
     assert magnitude >= 0
     if random.random() < chance:
         return Gene(gene.template, gene.weight + (random.random() * magnitude) - magnitude / 2)
+    return gene
     
 # =================  EPIGENE =================
 
@@ -89,7 +90,7 @@ class Genome(object):
     """
     The collection of all the genes for one agent in the model. Used to access genes and to handle reproduction when an agent dies.
     """
-    def __init__(self, genes: dict[str, Gene] = [], fitness: int = 1):
+    def __init__(self, genes: dict[str, Gene] = {}, fitness: int = 1):
         self.genes: dict[str, Gene] = genes
         self.fitness = fitness
         self.previous_state = None
@@ -101,10 +102,10 @@ class Genome(object):
         pass
 
     def __str__(self):
-        result: str = "Genome:"
+        result: str = "Genome("
         for v in self.genes.values():
-            result += " " + str(v)
-        return result
+            result += str(v) + ", "
+        return result[:-2] + ")"
 
 def cross_genome(a: Genome, b: Genome) -> Genome:
     """
@@ -117,6 +118,8 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
+    for k, v in new_genes.items():
+        print(k,v)
     result: Genome = Genome(new_genes)
     print(result)
     return result
