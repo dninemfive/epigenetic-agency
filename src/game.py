@@ -89,8 +89,13 @@ if __name__ == "__main__":
         if len(new_gene_pool) > 10:
             log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
             gene_pool = new_gene_pool
-    print("Final gene pool:")
+    print("\nFinal gene pool:")
     i: int = 1
-    for item in gene_pool:
-        print(i,":",item)
+    sorted_gene_pool = sorted(gene_pool, key=lambda x: x.fitness)
+    for item in sorted_gene_pool:
+        log(f"{i:2}: {item}", 1)
         i += 1
+        if i > 10:
+            break
+    print("\n========== And now, the strongest player battles!\n")
+    battle(Player(Decider_Genome(sorted_gene_pool[0])))
