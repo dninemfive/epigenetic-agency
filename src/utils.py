@@ -31,8 +31,11 @@ def weighted_avg(a: float, b: float, ratio: float) -> float:
     return (a * ratio) + (b * (1 - ratio))
 
 def clamp(val: float, min_val: float = 0, max_val: float = 1) -> float:
-    if val < min_val: return min_val
-    return val if val < max_val else max_val
+    if min_val is not None and val < min_val: 
+        return min_val
+    if max_val is not None and val > max_val:
+        return max_val
+    return val
 
 def sigmoid(x: float, x_0: float = 0., L: float = 1., k: float = 1.) -> float:
     """

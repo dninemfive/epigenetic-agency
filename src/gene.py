@@ -2,7 +2,7 @@ import random
 from utils import weighted_avg, clamp, sigmoid
 from typing import Any
 from logger import log
-from action import Action, ActionResult
+from action import Action, ActionResult, possible_actions
 
 # ================= GENE =================
 
@@ -93,11 +93,24 @@ class Genome(object):
     def update_epigene(self, key: str):
         pass
 
+    def evaluate_actions(self, player, enemies) -> Action:
+        actions: list[tuple[Action, float]] = []
+        for action in possible_actions(player, enemies):
+            actions.append((action, self.evaluate_action(player, enemies, action)))
+        return random.choices([x[0] for x in actions], [x[1] for x in actions])[0]
+
     def evaluate_action(self, player, enemies, action: Action) -> float:
         weight: float = 1
+        relevant_ct: float = 0
         for gene in self.action_genes:
-            weight *= gene.weight * gene.evaluate_action(player, enemies, action)
-        return weight
+            value: float = gene.evaluate_action(player, enemies, action)
+            if value != 0: relevant_ct += 0
+            weight += gene.weight * gene.evaluate_action(player, enemies, action)
+        return clamp(weight / relevant_ct, min_val=0, max_val=None)
+    
+    def receive_feedback(self, feedback: ActionResult) -> None:
+        for gene in self.action_genes:
+            gene.epigene.receive_feedback(feedback)
 
     @property
     def action_genes(self) -> list[ActionGene]:

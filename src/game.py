@@ -1,10 +1,11 @@
-from player import Player, Decider_Genome, DEFAULT_AMMO
+from player import Player, Decider_Genome, DEFAULT_AMMO, HEAL_AMOUNT
 from enemy import Enemy, EnemyTemplate, ENEMY_TEMPLATES
 from utils import list_str
 from gene import Genome, cross
 import random
 from typing import Any
 from logger import increase_indent, decrease_indent, log
+from action import Action, ActionResult
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
@@ -13,23 +14,34 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     increase_indent()
     def do_turn(turnNumber: int):
         increase_indent()
+        actionResults: list = []
         log(f"Turn {turnNumber}: {player} vs {list_str(enemies.values())}")
-        player.do_attacks(enemies)
-        for enemy in [x for x in enemies.values() if x.hp > 0]:
+        remainingEnemies: dict[str, Enemy] = {k: v for k, v in enemies.items() if v.hp > 0}
+        initial_player_hp: int = player.hp
+        for _ in range(player.remainingMoves):
+            next_action: Action = player.next_action(remainingEnemies)
+            result: ActionResult = next_action.apply(player)
+            actionResults.append(result)
+            remainingEnemies: dict[str, Enemy] = {k: v for k, v in enemies.items() if v.hp > 0}
+        for enemy in remainingEnemies.values():
             dmg: int = player.take_hit(enemy.damage_type)
-            log(f"{enemy.name} attacks player for {dmg} damage!")
+        healct = len([x for x in actionResults if x[0].is_defense])
+        for result in actionResults:
+            if result[0].is_attack:
+                player.decider.receive_feedback(result[1])
+            if result[0].is_defense:
+                player.decider.receive_feedback((player.hp - initial_player_hp) / float(healct))
         decrease_indent()
     ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
         do_turn(ct)
-    if isinstance(player.decider, Decider_Genome): 
+    if isinstance(player.decider, Decider_Genome):
         player.decider.genome.complete_battle()
     # refill ammo
     for k in player.ammo.keys():
         if k == "None": continue
         player.ammo[k] = DEFAULT_AMMO
-    # player heals hp?
     decrease_indent()
 
 def battles_until_death(player: Player) -> Genome:

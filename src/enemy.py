@@ -1,4 +1,5 @@
 from damage_type import damage_for
+from action import Action
 
 class EnemyTemplate(object):
     """
@@ -22,8 +23,8 @@ class Enemy(object):
         self.name = name
         self.hp = template.base_hp
 
-    def take_hit(self, type: str) -> int:
-        amt: int = damage_for(type, self.damage_type)
+    def apply_action(self, action: Action) -> int:
+        amt: int = damage_for(action.damageType, self.damage_type)
         self.hp -= amt
         return amt
 
