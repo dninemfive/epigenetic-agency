@@ -101,9 +101,10 @@ class Genome(object):
         pass
 
     def __str__(self):
-        result: str = ""
+        result: str = "Genome:"
         for v in self.genes.values():
-            result += str(v)
+            result += " " + str(v)
+        return result
 
 def cross_genome(a: Genome, b: Genome) -> Genome:
     """
@@ -111,8 +112,11 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
 
     Returns a *new* Genome, does not modify either one passed in.
     """
+    print("Crossing",a,"and",b,":")
     new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
-    return Genome(new_genes)
+    result: Genome = Genome(new_genes)
+    print(result)
+    return result

@@ -9,13 +9,11 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     A player fights enemies until either the player is dead or all the enemies are dead.
     """
     def do_turn(turnNumber: int):
-        print("\tTurn", turnNumber, ":",player,"vs",list_str(enemies.values()))
+        print("\t\tTurn", turnNumber, ":",player,"vs",list_str(enemies.values()))
         player.do_attacks(enemies)
         for enemy in [x for x in enemies.values() if x.hp > 0]:
             dmg: int = player.take_hit(enemy.damage_type)
-            print("\t\t", enemy.name,"attacks player for", dmg, "damage!")
-    for enemy in enemies.values():
-        print(enemy.hp)
+            print("\t\t\t", enemy.name,"attacks player for", dmg, "damage!")
     ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
@@ -36,6 +34,7 @@ def battles_until_death(player: Player) -> Genome:
         battle(player, enemies)
         print("\tPlayer has died after",player.decider.genome.fitness - 1,"battles!")
         battle_ct += 1
+    print("\tResulting genome:",player.decider.genome)
     return player.decider.genome
 
 def new_genome(gene_pool: list[Genome]):

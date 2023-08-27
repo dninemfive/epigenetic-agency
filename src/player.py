@@ -34,7 +34,7 @@ class Player(object):
                 remainingEnemies.pop(target)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("\t\tPlayer attacks", target, "with", damageType, "dealing", dmg, "damage!")
+            print("\t\t\tPlayer attacks", target, "with", damageType, "dealing", dmg, "damage!")
 
     def take_hit(self, damageType: DamageType) -> int:
         """
