@@ -53,3 +53,8 @@ if __name__ == "__main__":
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player))
         next_genome = new_genome(gene_pool)
+    print("Final gene pool: ")
+    i: int = 1
+    for item in gene_pool:
+        print(i,":",item)
+        i += 1

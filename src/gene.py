@@ -56,7 +56,7 @@ def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     assert a.name == b.name
     return Gene(a.template, weighted_avg(a.weight, b.weight, ratio))
 
-def mutate(gene: Gene, chance: float = 0.05, magnitude: float = 0.1) -> Gene:
+def mutate(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
     """
     Perturb the value of a gene to some degree, representing random mutations in genetics.
     """
@@ -90,10 +90,9 @@ class Genome(object):
     """
     The collection of all the genes for one agent in the model. Used to access genes and to handle reproduction when an agent dies.
     """
-    def __init__(self, genes: dict[str, Gene] = {}, fitness: int = 1):
+    def __init__(self, genes: dict[str, Gene] = {}, fitness: int = 0):
         self.genes: dict[str, Gene] = genes
         self.fitness = fitness
-        self.previous_state = None
 
     def complete_battle(self):
         self.fitness += 1    
@@ -102,7 +101,7 @@ class Genome(object):
         pass
 
     def __str__(self):
-        result: str = "Genome("
+        result: str = "Genome(fitness=" + str(self.fitness) + ", "
         for v in self.genes.values():
             result += str(v) + ", "
         return result[:-2] + ")"
@@ -118,8 +117,6 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
-    for k, v in new_genes.items():
-        print(k,v)
     result: Genome = Genome(new_genes)
-    print(result)
+    print("\t",result)
     return result
