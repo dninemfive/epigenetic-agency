@@ -3,7 +3,9 @@ from enemy import Enemy, ENEMY_TEMPLATES
 from utils import list_str
 import random
 
-NUMBER_OF_ENEMIES: int = 10
+NUMBER_OF_ENEMIES: int = 40
+NUMBER_OF_GAMES: int = 100
+PLAYER_HP: int = 1000
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
@@ -35,13 +37,15 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     if (player.hp > 0):
         print("Player wins!")
         print("Player's remaining HP:", player.hp)
+        return True
     else:
         print("Player loses!")
+        return False
 
     # player heals hp?
 
-if __name__ == "__main__":
-    player: Player = Player(Decider_Genome())
+def setup():
+    player: Player = Player(Decider_Genome(), PLAYER_HP)
     enemies: dict[str, Enemy] = {}
     enemy_types: list[str] = list(ENEMY_TEMPLATES.keys())
 
@@ -49,4 +53,12 @@ if __name__ == "__main__":
         name: str = str(i + 1)
         chosen_enemy_type = random.choice(enemy_types)  
         enemies[name] = Enemy(ENEMY_TEMPLATES[chosen_enemy_type], name)
-    battle(player, enemies)
+
+    return battle(player, enemies)
+
+if __name__ == "__main__":
+    winCount = 0
+    for i in range(NUMBER_OF_GAMES):
+        if setup():
+            winCount += 1
+    print('win count:', winCount)

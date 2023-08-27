@@ -37,7 +37,7 @@ class Gene(object):
     """
     The basic unit of the genetic model. Genes are used to weight decisions for a weighted random selection.
     """
-    def __init__(self, template: GeneTemplate, weight: float = 0.5):
+    def __init__(self, template: GeneTemplate, weight: float = 0.2):
         self.template = template
         self.epigene = Epigene(self)    
         self.weight = weight

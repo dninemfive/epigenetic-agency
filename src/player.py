@@ -9,9 +9,9 @@ class Player(object):
     This class represents the agent playing the game. It tracks the ammo and HP the agent has, and uses a
     Decider to make decisions in-game.
     """
-    def __init__(self, decider):
+    def __init__(self, decider, hp):
         # how many hits the player can take until they die
-        self.hp: int = 100
+        self.hp: int = hp
         # how many times the player can use a damage type
         self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
@@ -29,7 +29,14 @@ class Player(object):
         while self.remainingMoves > 0 and any(remainingEnemies):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
             targetedEnemy: Enemy = remainingEnemies[target]
+
             dmg: int = targetedEnemy.take_hit(damageType)
+            success = 1 if dmg == 3 else 0
+
+            # using the decider's update_counters method to update the genome
+            # uncomment this line to use see different result.
+            self.decider.update_counters(targetedEnemy.damage_type, damageType.name, success)
+
             print("Player attacks", targetedEnemy, "with", damageType, "dealing", dmg, "damage!")
             if targetedEnemy.hp <= 0:
                 enemies.pop(target)
@@ -114,7 +121,10 @@ class Decider_Genome(Decider):
         self.attack_counters = {}  # {"enemy_type": {"attack_type": success_count}}
 
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
-        result_enemy = random.choice([x for x in remainingEnemies.keys()])
+
+        result_enemy = self.lowestHpEnemy(remainingEnemies) # this significantly improves the win rate
+        #result_enemy = random.choice([x for x in remainingEnemies.keys()])
+
         # random.choices returns a list apparently, so get the first item
 
         enemy_type = remainingEnemies[result_enemy].damage_type  # Assuming remainingEnemies is a list of Enemy objects
@@ -123,7 +133,13 @@ class Decider_Genome(Decider):
         result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])[0]
         return (result_enemy, result_type)
     
+    # prioritize low HP enemies
+    def lowestHpEnemy(self, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
+        return sorted(remainingEnemies.items(), key=lambda x: x[1].hp)[0][0]
+    
     def update_counters(self, enemy_type, attack_type, success):
+        if not attack_type:
+            return
         if enemy_type not in self.attack_counters:
             self.attack_counters[enemy_type] = {}
         if attack_type not in self.attack_counters[enemy_type]:
@@ -131,10 +147,7 @@ class Decider_Genome(Decider):
         self.attack_counters[enemy_type][attack_type] += success  # success can be 1 or 0
 
     def adapt_genome(self, enemy_type):
-        print(f"Enemy type: {enemy_type}")
         if enemy_type in self.attack_counters:
             for attack_type, success_count in self.attack_counters[enemy_type].items():
                 # Update the gene weight based on success_count
                 self.genome.genes[attack_type].weight += success_count * 0.1  # learning_rate = 0.1
-                print(f"Updated {attack_type} weight to {self.genome.genes[attack_type].weight}")
-
