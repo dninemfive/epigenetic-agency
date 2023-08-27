@@ -30,7 +30,13 @@ def cross_genes(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     Merge the values of two genes, representing crossing over in genetics.
     """
     assert a.name == b.name
-    return Gene(a.template, weighted_avg(a.weight, b.weight, ratio))
+    print(f"Cross_genes({a.__class__}, {b.__class__})")
+    assert a.__class__ == b.__class__
+    combined_weight: float = weighted_avg(a.weight, b.weight, ratio)
+    if isinstance(a, ActionGene):
+        # take the epigene from the better class without crossing, for now
+        return ActionGene(a.name, combined_weight, a.action_evaluator, a.epigene if ratio > 1 else b.epigene)
+    return Gene(a.name, combined_weight)
 
 def mutate_gene(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
     """
@@ -38,8 +44,11 @@ def mutate_gene(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gen
     """
     assert magnitude >= 0
     if random.random() < chance:
-        return Gene(gene.template, clamp(gene.weight + (random.random() * magnitude) - magnitude / 2))
-    return gene
+        new_weight: float = clamp(gene.weight + (random.random() * magnitude) - magnitude / 2)
+        if isinstance(gene, ActionGene):
+            return ActionGene(gene.name, new_weight, gene.action_evaluator, gene.epigene)
+        return Gene(gene.name, new_weight)
+    return Gene(gene.name, gene.weight)
     
 # =================  EPIGENE =================
 
@@ -69,10 +78,11 @@ class ActionGene(Gene):
         super().__init__(name, _weight)
         self.epigene = epigene if epigene is not None else Epigene(self)
         self.action_evaluator = action_evaluator
+        self.epigene.parent = self
 
     # the gene tells you how good an action will be and then the epigenome receives feedback on whether that was true
     def evaluate_action(self, player, enemies, action: Action) -> float:
-        self.action_evaluator(player, enemies, action)
+        return self.action_evaluator(player, enemies, action)
 
     @property
     def weight(self):
@@ -87,10 +97,10 @@ class Genome(object):
         self.genes: dict[str, Gene] = genes
         self.fitness = fitness
 
-    def complete_battle(self):
-        self.fitness += 1
+    def complete_battle(self, reward: float = 1):
+        self.fitness += reward
         for gene in self.action_genes:
-            gene.epigene.apply_central_bias(self.genes["Epigene Central Bias"])
+            gene.epigene.apply_central_bias(self.genes["Epigene Central Bias"].weight)
 
     def evaluate_actions(self, player, enemies) -> Action:
         actions: list[tuple[Action, float]] = []
@@ -110,7 +120,7 @@ class Genome(object):
     
     def receive_feedback(self, feedback: ActionResult) -> None:
         for gene in self.action_genes:
-            gene.epigene.receive_feedback(feedback)
+            gene.epigene.receive_feedback(feedback, self.genes["Epigene Adaptability"].weight)
 
     @property
     def action_genes(self) -> list[ActionGene]:
@@ -129,7 +139,7 @@ class Genome(object):
         for gene in normal_genes:
             default_gene_dict[gene.name] = gene
         for gene in action_genes:
-            default_gene_dict[gene.name] = action_genes
+            default_gene_dict[gene.name] = gene
         return Genome(default_gene_dict)
 
     def __str__(self):
@@ -147,9 +157,10 @@ def cross(a: Genome, b: Genome) -> Genome:
     new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
+        print(k)
         new_genes[k] = mutate_gene(cross_genes(a.genes[k], b.genes[k], ratio),\
-                                    chance=weighted_avg(a.genes["Mutation Chance"],b.genes["Mutation Chance"], ratio),\
-                                    magnitude=weighted_avg(a.genes["Mutation Magnitude"], b.genes["Mutation Magnitude"], ratio))
+                                    chance=weighted_avg(a.genes["Mutation Chance"].weight,b.genes["Mutation Chance"].weight, ratio),\
+                                    magnitude=weighted_avg(a.genes["Mutation Magnitude"].weight, b.genes["Mutation Magnitude"].weight, ratio))
     result: Genome = Genome(new_genes)
     log(f"crossing {a} and {b}: {result}", 1)
     return result

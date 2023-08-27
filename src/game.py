@@ -12,6 +12,7 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     A player fights enemies until either the player is dead or all the enemies are dead.
     """
     increase_indent()
+    original_enemy_count: int = len(enemies)
     def do_turn(turnNumber: int):
         increase_indent()
         actionResults: list = []
@@ -32,12 +33,16 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
             if result[0].is_defense:
                 player.decider.receive_feedback((player.hp - initial_player_hp) / float(healct))
         decrease_indent()
+    def finalize(reward: float = 1):
+        if isinstance(player.decider, Decider_Genome):
+            player.decider.genome.complete_battle(reward)
     ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
         do_turn(ct)
-    if isinstance(player.decider, Decider_Genome):
-        player.decider.genome.complete_battle()
+        if ct > 100:
+            finalize(0.1)
+    finalize(original_enemy_count)
     # refill ammo
     for k in player.ammo.keys():
         if k == "None": continue
@@ -48,10 +53,10 @@ def battles_until_death(player: Player) -> Genome:
     assert isinstance(player.decider, Decider_Genome)
     increase_indent()
     battle_ct: int = 0
-    while player.hp > 0:
+    while player.hp > 0 and battle_ct < 1000:
         log(f"Battle {battle_ct}:")
         enemies: dict[str, Enemy] = {}
-        while sum([x.hp for x in enemies.values()]) < 3:
+        for i in range(int(random.random() * 10)):
             template: EnemyTemplate = random.choice([x for x in ENEMY_TEMPLATES.values()])
             name: str = template.name + " " + str(i + 1)
             enemies[name] = Enemy(template, name)
