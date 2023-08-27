@@ -41,6 +41,7 @@ class Player(object):
         Represents the player taking damage. Made its own method because we'll likely want to send epigenome signals
         when this occurs.
         """
+        
         self.hp -= damage_for(damageType, "Fire") # todo: player damage type weights based on genetics?
 
     def consume_ammo(self, damageType: DamageType) -> None:
@@ -106,9 +107,29 @@ class Decider_Genome(Decider):
     """
     def __init__(self):
         self.genome = Genome({ v.name: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
+        self.attack_counters = {}  # {"enemy_type": {"attack_type": success_count}}
 
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         result_enemy = random.choice([x for x in remainingEnemies.keys()])
         # random.choices returns a list apparently, so get the first item
+        enemy_type = remainingEnemies[result_enemy].damage_type  # Assuming remainingEnemies is a list of Enemy objects
+        self.adapt_genome(enemy_type)
+    
         result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])[0]
         return (result_enemy, result_type)
+    
+    def update_counters(self, enemy_type, attack_type, success):
+        if enemy_type not in self.attack_counters:
+            self.attack_counters[enemy_type] = {}
+        if attack_type not in self.attack_counters[enemy_type]:
+            self.attack_counters[enemy_type][attack_type] = 0
+        self.attack_counters[enemy_type][attack_type] += success  # success can be 1 or 0
+
+    def adapt_genome(self, enemy_type):
+        print(f"Enemy type: {enemy_type}")
+        if enemy_type in self.attack_counters:
+            for attack_type, success_count in self.attack_counters[enemy_type].items():
+                # Update the gene weight based on success_count
+                self.genome.genes[attack_type].weight += success_count * 0.1  # learning_rate = 0.1
+                print(f"Updated {attack_type} weight to {self.genome.genes[attack_type].weight}")
+

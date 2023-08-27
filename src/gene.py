@@ -21,7 +21,7 @@ class GeneTemplate(object):
     def __str__(self):
         return "Epigenome(" + self.name + ")"
 
-GENE_TEMPLATES = [
+GENE_TEMPLATES = [ 
     # epigenome weight:         amount the epigenome factors into decisions using genes
     # epigenome adaptability:   how strongly the epigenome reacts to signals
     # epigenome central bias:   how strongly the epigenome returns to expression = 0.5

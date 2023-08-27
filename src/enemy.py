@@ -1,4 +1,4 @@
-from damage_type import damage_for
+from damage_type import damage_for, DamageType
 
 class EnemyTemplate(object):
     """
@@ -10,7 +10,8 @@ class EnemyTemplate(object):
         self.damage_type: str = damage_type
     
 ENEMY_TEMPLATES: dict[str, EnemyTemplate] = {
-    "Zombie": EnemyTemplate("Zombie", 3, None)
+    "Zombie": EnemyTemplate("Zombie", 3, None),
+    "Skeleton": EnemyTemplate("Skeleton", 2, DamageType("Skeleton", "Fire"))
 }
 
 class Enemy(object):
