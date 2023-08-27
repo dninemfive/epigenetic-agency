@@ -10,7 +10,10 @@ class EnemyTemplate(object):
         self.damage_type: str = damage_type
     
 ENEMY_TEMPLATES: dict[str, EnemyTemplate] = {
-    "Zombie": EnemyTemplate("Zombie", 3, None)
+    "Zombie": EnemyTemplate("Zombie", 5, "None"),
+    "Blaze": EnemyTemplate("Blaze", 5, "Fire"),
+    "Silverfish": EnemyTemplate("Silverfish", 2, "Earth"),
+    "Iceologer": EnemyTemplate("Iceologer", 5, "Frost") 
 }
 
 class Enemy(object):

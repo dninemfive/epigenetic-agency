@@ -9,6 +9,8 @@ class DamageType(object):
         self.strong_against: callable = lambda dt : dt.name == strong_against
     
     def damage_against(self, other) -> int:
+        if other is None: return 2
+        if isinstance(other, str): return self.damage_against(DAMAGE_TYPES[other])
         if self.strong_against(other):
             return 3
         if other.strong_against(self):

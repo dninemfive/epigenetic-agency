@@ -62,7 +62,10 @@ def mutate(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
     """
     assert magnitude >= 0
     if random.random() < chance:
-        return Gene(gene.template, gene.weight + (random.random() * magnitude) - magnitude / 2)
+        modified_val: float = gene.weight + (random.random() * magnitude) - magnitude / 2
+        if modified_val <= 0: modified_val = 0.000001
+        if modified_val > 1: modified_val = 1
+        return Gene(gene.template, modified_val)
     return gene
     
 # =================  EPIGENE =================

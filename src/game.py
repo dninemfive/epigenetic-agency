@@ -1,5 +1,5 @@
 from player import Player, Decider_Genome
-from enemy import Enemy, ENEMY_TEMPLATES
+from enemy import Enemy, ENEMY_TEMPLATES, EnemyTemplate
 from utils import list_str
 from gene import Genome, cross_genome
 import random
@@ -20,6 +20,9 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
         do_turn(ct)
     if isinstance(player.decider, Decider_Genome): 
         player.decider.genome.complete_battle()
+    for k in player.ammo.keys():
+        if k == "None": continue
+        player.ammo[k] = 5
     # player heals hp?
 
 def battles_until_death(player: Player) -> Genome:
@@ -28,9 +31,10 @@ def battles_until_death(player: Player) -> Genome:
     while player.hp > 0:
         print("\tBattle",battle_ct)
         enemies: dict[str, Enemy] = {}
-        for i in range(int(random.random() * 2) + 1):
-            name: str = str(i + 1)
-            enemies[name] = Enemy(ENEMY_TEMPLATES["Zombie"], name)
+        while sum([x.hp for x in enemies.values()]) < 3:
+            template: EnemyTemplate = random.choice([x for x in ENEMY_TEMPLATES.values()])
+            name: str = template.name + " " + str(i + 1)
+            enemies[name] = Enemy(template, name)
         battle(player, enemies)
         print("\tPlayer has died after",player.decider.genome.fitness - 1,"battles!")
         battle_ct += 1
@@ -47,12 +51,16 @@ def new_genome(gene_pool: list[Genome]):
 
 if __name__ == "__main__":
     gene_pool: list[Genome] = []
-    next_genome = Decider_Genome().genome
-    for i in range(10):
+    next_genome: Genome = Decider_Genome().genome
+    for i in range(1000):
         print("Generation",i)
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player))
-        next_genome = new_genome(gene_pool)
+        next_genome: Genome = new_genome(gene_pool)
+        mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
+        new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
+        if len(new_gene_pool) > 1:
+            gene_pool = new_gene_pool
     print("Final gene pool: ")
     i: int = 1
     for item in gene_pool:
