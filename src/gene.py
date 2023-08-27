@@ -9,10 +9,8 @@ class GeneTemplate(object):
     """
     A template for each gene. Basically unused right now, but might be useful if we want to give them default weights or something.
     """
-    def __init__(self, name: str, epigeneSignalHandler: callable):
-        self.name = name
-        # more precisely, callable(Any, float) -> float
-        self.epigeneSignalHandler = epigeneSignalHandler
+    def __init__(self, name: str):
+        self.name = name    
 
     # https://stackoverflow.com/a/3076987
     # implementing these so the type can be used as a dictionary key
@@ -24,6 +22,7 @@ class GeneTemplate(object):
     
     def __str__(self):
         return "Epigenome(" + self.name + ")"
+
 
 GENE_TEMPLATES = [
     # epigenome weight:         amount the epigenome factors into decisions using genes
@@ -99,6 +98,11 @@ class Epigene(object):
 
     def __str__(self):
         return "Epigene for " + str(self.parent)
+    
+class GeneTemplate_WithEpigene(GeneTemplate):
+    # the gene tells you how good an action will be and then the epigenome receives feedback on whether that was true
+    def action_value(player, enemies, action) -> float:
+        raise NotImplementedError()
 
 # =================  GENOME  =================                    
 class Genome(object):
