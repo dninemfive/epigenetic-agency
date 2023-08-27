@@ -13,12 +13,10 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
         print("Turn", turnNumber, ":\n",player, "\n", list_str(enemies.values()))
         player.do_attacks(enemies)
         for enemy in [x for x in enemies.values() if x.hp > 0]:
-            if enemy.damage_type is None:
-                continue
             dmg: int = player.take_hit(enemy.damage_type)
             print(enemy, "attacks player for", dmg, "damage!")
             print("Player's remaining HP:", player.hp)
-            
+
             if player.hp <= 0:
                 print("Player died!")
                 return
@@ -26,6 +24,7 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
+        print('\n\n')
         do_turn(ct)
 
     print("Battle over!")

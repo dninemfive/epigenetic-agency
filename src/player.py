@@ -30,13 +30,14 @@ class Player(object):
             target, damageType = self.decider.choose_attack(self, remainingEnemies)
             targetedEnemy: Enemy = remainingEnemies[target]
             dmg: int = targetedEnemy.take_hit(damageType)
+            print("Player attacks", targetedEnemy, "with", damageType, "dealing", dmg, "damage!")
             if targetedEnemy.hp <= 0:
                 enemies.pop(target)
                 remainingEnemies.pop(target)
                 print("Enemy", targetedEnemy, "died!")
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("Player attacks", targetedEnemy, "with", damageType, "dealing", dmg, "damage!")
+            
 
     def take_hit(self, damageType: DamageType) -> None:
         """
