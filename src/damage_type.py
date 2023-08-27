@@ -1,5 +1,7 @@
 from gene import GeneTemplate
 
+WEAK_DAMAGE, DEFAULT_DAMAGE, STRONG_DAMAGE = 1, 2, 3
+
 class DamageType(object):
     """
     Defines a damage type, which determines how much damage an attack does against a specified enemy.
@@ -9,13 +11,13 @@ class DamageType(object):
         self.strong_against: callable = lambda dt : dt.name == strong_against
     
     def damage_against(self, other) -> int:
-        if other is None: return 2
+        if other is None: return DEFAULT_DAMAGE
         if isinstance(other, str): return self.damage_against(DAMAGE_TYPES[other])
         if self.strong_against(other):
-            return 3
+            return STRONG_DAMAGE
         if other.strong_against(self):
-            return 1
-        return 2
+            return WEAK_DAMAGE
+        return DEFAULT_DAMAGE
     
     def __str__(self):
         return "DamageType(" + self.name + ")"
@@ -43,5 +45,5 @@ DAMAGE_TYPE_GENES: dict[str, GeneTemplate] = {
 
 def damage_for(attackerType: str, defenderType: str):
     if attackerType not in DAMAGE_TYPES or defenderType not in DAMAGE_TYPES:
-        return 1
+        return DEFAULT_DAMAGE
     return DAMAGE_TYPES[attackerType].damage_against(defenderType)

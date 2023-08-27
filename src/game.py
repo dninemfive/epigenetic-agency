@@ -1,7 +1,7 @@
 from player import Player, Decider_Genome, DEFAULT_AMMO
 from enemy import Enemy, EnemyTemplate, ENEMY_TEMPLATES
 from utils import list_str
-from gene import Genome, cross_genome
+from gene import Genome, cross
 import random
 from typing import Any
 from logger import increase_indent, decrease_indent, log
@@ -56,7 +56,7 @@ def new_genome(gene_pool: list[Genome]):
         return gene_pool[0]
     else:
         parents = random.choices(gene_pool, weights=[x.fitness for x in gene_pool], k=2)
-        return cross_genome(parents[0], parents[1])
+        return cross(parents[0], parents[1])
 
 if __name__ == "__main__":
     gene_pool: list[Genome] = []

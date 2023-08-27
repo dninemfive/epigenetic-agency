@@ -1,71 +1,36 @@
 import random
-from utils import weighted_avg
+from utils import weighted_avg, clamp, sigmoid
 from typing import Any
 from logger import log
+from action import Action, ActionResult
 
 # ================= GENE =================
 
-class GeneTemplate(object):
-    """
-    A template for each gene. Basically unused right now, but might be useful if we want to give them default weights or something.
-    """
-    def __init__(self, name: str):
-        self.name = name    
-
-    # https://stackoverflow.com/a/3076987
-    # implementing these so the type can be used as a dictionary key
-    def __eq__(self, other) -> bool:
-        return isinstance(other, GeneTemplate) and self.name == other.name
-    
-    def __hash__(self):
-        return hash(self.name)
-    
-    def __str__(self):
-        return "Epigenome(" + self.name + ")"
-
-
-GENE_TEMPLATES = [
-    # epigenome weight:         amount the epigenome factors into decisions using genes
-    GeneTemplate("Epigenome Weight", None),
-    # epigenome adaptability:   how strongly the epigenome reacts to signals
-    GeneTemplate("Epigenome Adaptability", None),
-    # epigenome central bias:   how strongly the epigenome returns to expression = 0.5
-    GeneTemplate("Epigenome Central Bias", None),
-    # gene for how much the player likes to attack
-    # signal: float = amount of damage done by an attack
-    GeneTemplate("Attack Bias", lambda f: (f - 2) / 100),
-    # gene for how much the player likes to heal
-    # gene which changes the weights of attacking/healing based on hp??
-    # ? gene for how much the player likes to scavenge ? (if loot is implemented)
-    # gene(s) for targeting enemies based on hp and damagetype
-    GeneTemplate("Target Weak Enemies", None)
-    # prioritize enemies which do more damage to us
-]
 
 class Gene(object):
     """
     The basic unit of the genetic model. Genes are used to weight decisions for a weighted random selection.
     """
-    def __init__(self, template: GeneTemplate, weight: float = 0.5):
-        self.template = template
-        self.epigene = Epigene(self, template.epigeneSignalHandler)    
-        self.weight = weight
+    def __init__(self, name: str, _weight: float = 0.5):
+        self.name = name
+        self._weight = _weight
 
+    # used so that ActionGene can override this with epigene weight
     @property
-    def name(self):
-        return self.template.name
+    def weight(self):
+        return self._weight
     
     def __str__(self):
         return "<" + self.name + ":" + str(int(self.weight * 100)) + ">"
 
-def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
+def cross_genes(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     """
     Merge the values of two genes, representing crossing over in genetics.
     """
     assert a.name == b.name
     return Gene(a.template, weighted_avg(a.weight, b.weight, ratio))
 
-def mutate(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
+def mutate_gene(gene: Gene, chance: float = 0.25, magnitude: float = 0.1) -> Gene:
     """
     Perturb the value of a gene to some degree, representing random mutations in genetics.
     """
@@ -84,39 +49,62 @@ class Epigene(object):
     One Epigene is attached to each Gene, and it modifies how much that gene is expressed based on feedback after each event,
     such as the amount of damage dealt by or to the player.
     """
-    def __init__(self, parent: Gene, signalHandler: callable = None, expression: float = 0.5):
+    def __init__(self, parent: Gene, expression: float, adaptability: float, central_bias: float):
         # the gene this epigene affects
         self.parent: Gene = parent
-        self.signalHandler = signalHandler
         # to what degree the epigene affects the parent gene.
         # plug into a sigmoid curve, probably
         self.expression: float = expression
+        self.adaptability: float = adaptability
+        self.central_bias: float = central_bias
 
-    def receive_signal(self, signal: Any, delta: float = 0.5) -> None:
-        if self.signalHandler is None: return
-        expression += self.signalHandler(signal, delta)
+    def receive_feedback(self, feedback: ActionResult) -> None:
+        self.expression = clamp(self.expression + sigmoid(feedback) * self.adaptability)
 
     def __str__(self):
         return "Epigene for " + str(self.parent)
     
-class GeneTemplate_WithEpigene(GeneTemplate):
+class ActionGene(Gene):
+    def __init__(self, name: str, action_evaluator: callable, epigene: Epigene = None):
+        super().__init__()
+        self.epigene = epigene if epigene is not None else Epigene(self)
+        self.action_evaluator = action_evaluator
+
     # the gene tells you how good an action will be and then the epigenome receives feedback on whether that was true
-    def action_value(player, enemies, action) -> float:
-        raise NotImplementedError()
+    def evaluate_action(self, player, enemies, action: Action) -> float:
+        self.action_evaluator(player, enemies, action)
+
+    @property
+    def weight(self):
+        return self._weight * self.epigene.expression
 
 # =================  GENOME  =================                    
 class Genome(object):
     """
     The collection of all the genes for one agent in the model. Used to access genes and to handle reproduction when an agent dies.
     """
-    def __init__(self, genes: dict[str, Gene] = {}, fitness: int = 0):
+    def __init__(self, genes: dict[str, Gene] = None, fitness: int = 0):
         self.genes: dict[str, Gene] = genes
         self.fitness = fitness
 
     def complete_battle(self):
         self.fitness += 1    
 
-    def update_epigene(self, template: GeneTemplate):
+    def update_epigene(self, key: str):
+        pass
+
+    def evaluate_action(self, player, enemies, action: Action) -> float:
+        weight: float = 1
+        for gene in self.action_genes:
+            weight *= gene.weight * gene.evaluate_action(player, enemies, action)
+        return weight
+
+    @property
+    def action_genes(self) -> list[ActionGene]:
+        return [x for x in self.genes.values() if isinstance(x, ActionGene)]
+    
+    @property
+    def default(self):
         pass
 
     def __str__(self):
@@ -125,7 +113,7 @@ class Genome(object):
             result += str(v) + ", "
         return result[:-2] + ")"
 
-def cross_genome(a: Genome, b: Genome) -> Genome:
+def cross(a: Genome, b: Genome) -> Genome:
     """
     Cross two genomes, merging the relevant values as well as mutating them.
 
@@ -134,7 +122,7 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
     new_genes: dict[str, Gene] = dict()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes.items():
-        new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))
+        new_genes[k] = mutate_gene(cross_genes(a.genes[k], b.genes[k], ratio))
     result: Genome = Genome(new_genes)
     log(f"crossing {a} and {b}: {result}", 1)
     return result

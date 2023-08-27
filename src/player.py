@@ -6,6 +6,7 @@ from logger import log
 import random
 
 DEFAULT_AMMO: int = 10
+PLAYER_HP: int = 25
 
 class Player(object):
     """
@@ -14,7 +15,7 @@ class Player(object):
     """
     def __init__(self, decider):
         # how many hits the player can take until they die
-        self.hp: int = 25
+        self.hp: int = PLAYER_HP
         # how many times the player can use a damage type
         self.ammo: dict[str, int] = dict()
         for k, _ in DAMAGE_TYPES.items():
@@ -62,6 +63,10 @@ class Player(object):
         What ammo types are available for the player to use. "None" is always an option.
         """
         return [DAMAGE_TYPES[k] for k, v in self.ammo.items() if k == "None" or v > 0]
+    
+    @property
+    def hp_percentage(self):
+        return self.hp / float(PLAYER_HP)
     
     def __str__(self) -> str:
         """

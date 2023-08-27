@@ -1,4 +1,5 @@
 from typing import Any
+import math
 
 def ask_for_input(resources: dict[str, Any], failMsg: str) -> Any:
     key: str = None
@@ -25,6 +26,19 @@ def list_str(items: enumerate, print_type: bool = False, print_brackets: bool = 
         first = False
     return "[" + result + "]" if print_brackets else result
 
-def weighted_avg(a: float, b: float, ratio: float):
+def weighted_avg(a: float, b: float, ratio: float) -> float:
     assert ratio >= 0 and ratio <= 1
     return (a * ratio) + (b * (1 - ratio))
+
+def clamp(val: float, min_val: float = 0, max_val: float = 1) -> float:
+    if val < min_val: return min_val
+    return val if val < max_val else max_val
+
+def sigmoid(x: float, x_0: float = 0., L: float = 1., k: float = 1.) -> float:
+    """
+    Plugs val into a sigmoid curve to clamp the values in the range (0, L).
+    Technically, this generalization is called the logistic function, apparently. 
+    https://en.wikipedia.org/wiki/Logistic_function
+    To visualize: https://www.desmos.com/calculator/bpbdhepeyo
+    """
+    return L / (1 + math.e ** -(k * (x - x_0)))

@@ -33,3 +33,7 @@ class Enemy(object):
 
     def __str__(self) -> str:
         return self.name + " (" + self.template.name + ", " + str(self.hp) + "/" + str(self.template.base_hp) + ")"
+    
+    @property
+    def hp_percentage(self) -> float:
+        return self.hp / self.template.base_hp
