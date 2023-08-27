@@ -16,10 +16,13 @@ class DamageType(object):
         return 2
     
     def __str__(self):
-        return self.name
+        return "DamageType(" + self.name + ")"
+    
+    def __repr__(self):
+        return self.__str__()
     
 _types: dict[DamageType, DamageType] = {
-    "None": None,
+    "None": "not strong against anything",
     "Fire": "Frost",
     "Water": "Fire",
     "Earth": "Water",

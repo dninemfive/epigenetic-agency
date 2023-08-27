@@ -17,6 +17,9 @@ class GeneTemplate(object):
     
     def __hash__(self):
         return hash(self.name)
+    
+    def __str__(self):
+        return "Epigenome(" + self.name + ")"
 
 GENE_TEMPLATES = [
     # epigenome weight:         amount the epigenome factors into decisions using genes
@@ -42,6 +45,9 @@ class Gene(object):
     @property
     def name(self):
         return self.template.name
+    
+    def __str__(self):
+        return "Genome(" + self.name + ", " + str(self.weight) + ")"
 
 def cross(a: Gene, b: Gene, ratio: float = 0.5) -> Gene:
     """
@@ -83,8 +89,8 @@ class Genome(object):
     """
     The collection of all the genes for one agent in the model. Used to access genes and to handle reproduction when an agent dies.
     """
-    def __init__(self, genes: dict[GeneTemplate, Gene] = [], fitness: int = 0):
-        self.genes: dict[GeneTemplate, Gene] = genes
+    def __init__(self, genes: dict[str, Gene] = [], fitness: int = 0):
+        self.genes: dict[str, Gene] = genes
         self.fitness = fitness
         self.previous_state = None
 
@@ -100,7 +106,7 @@ def cross_genome(a: Genome, b: Genome) -> Genome:
 
     Returns a *new* Genome, does not modify either one passed in.
     """
-    new_genes: dict[GeneTemplate, Gene] = set()
+    new_genes: dict[str, Gene] = set()
     ratio: float = float(a.fitness) / float(a.fitness + b.fitness)
     for k, _ in a.genes:
         new_genes[k] = mutate(cross(a.genes[k], b.genes[k], ratio))

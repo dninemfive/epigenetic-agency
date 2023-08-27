@@ -57,7 +57,7 @@ class Player(object):
         """
         What ammo types are available for the player to use. "None" is always an option.
         """
-        return [k for k, v in self.ammo.items() if k == "None" or v > 0]
+        return [DAMAGE_TYPES[k] for k, v in self.ammo.items() if k == "None" or v > 0]
     
     def __str__(self) -> str:
         """
@@ -105,9 +105,10 @@ class Decider_Genome(Decider):
     A Decider which uses the genome to make decisions about what to do.
     """
     def __init__(self):
-        self.genome = Genome({ v: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
+        self.genome = Genome({ v.name: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
 
     def choose_attack(self, player: Player, remainingEnemies: dict[str, Enemy]) -> tuple[str, DamageType]:
         result_enemy = random.choice([x for x in remainingEnemies.keys()])
-        result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])
+        # random.choices returns a list apparently, so get the first item
+        result_type = random.choices(player.available_ammo_types, weights=[self.genome.genes[x.name].weight for x in player.available_ammo_types])[0]
         return (result_enemy, result_type)
