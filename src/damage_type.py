@@ -1,5 +1,3 @@
-from gene import GeneTemplate
-
 WEAK_DAMAGE, DEFAULT_DAMAGE, STRONG_DAMAGE = 1, 2, 3
 
 class DamageType(object):
@@ -37,10 +35,6 @@ _types: dict[DamageType, DamageType] = {
 
 DAMAGE_TYPES: dict[str, DamageType] = {
     k: DamageType(k, v) for k, v in _types.items()
-}
-
-DAMAGE_TYPE_GENES: dict[str, GeneTemplate] = {
-    k: GeneTemplate(k, None) for k in _types.keys()
 }
 
 def damage_for(attackerType: str, defenderType: str):

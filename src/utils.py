@@ -45,3 +45,6 @@ def sigmoid(x: float, x_0: float = 0., L: float = 1., k: float = 1.) -> float:
     To visualize: https://www.desmos.com/calculator/bpbdhepeyo
     """
     return L / (1 + math.e ** -(k * (x - x_0)))
+
+def avg(a: float, b: float) -> float:
+    return weighted_avg(a, b, 0.5)

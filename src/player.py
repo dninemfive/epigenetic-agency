@@ -1,6 +1,6 @@
 from enemy import Enemy
 from gene import Gene, Genome
-from damage_type import DAMAGE_TYPES, DAMAGE_TYPE_GENES, damage_for, DamageType
+from damage_type import DAMAGE_TYPES, damage_for, DamageType
 from utils import list_str
 from logger import log
 import random
@@ -59,7 +59,10 @@ class Player(object):
         """
         if not self.has_ammo(damageType):
             return
-        self.ammo[damageType] -= 1
+        try:
+            self.ammo[damageType] -= 1
+        except:
+            pass
 
     @property
     def available_ammo(self) -> list[str]:
@@ -97,6 +100,7 @@ class Decider(object):
         raise NotImplementedError()
     
     def receive_feedback(self, feedback: ActionResult) -> None:
+        """Receives feedback from its actions. Only used by genome decider."""
         pass
     
 class Decider_CLI(Decider):
@@ -127,7 +131,7 @@ class Decider_Genome(Decider):
         if genome is not None:
             self.genome = genome
         else:
-            self.genome = Genome({ v.name: Gene(v) for v in DAMAGE_TYPE_GENES.values() })
+            self.genome = Genome.default()
 
     def choose_action(self, player: Player, remainingEnemies: dict[str, Enemy]) -> Action:
         return self.genome.evaluate_actions(player, remainingEnemies)

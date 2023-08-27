@@ -1,9 +1,8 @@
 from damage_type import DamageType, DAMAGE_TYPES, DEFAULT_DAMAGE
-from enemy import Enemy
 from logger import log
 
 class Action(object):
-    def __init__(self, enemy: Enemy, damageType: DamageType):
+    def __init__(self, enemy, damageType: DamageType):
         self.enemy = enemy
         self.damageType = damageType
 
@@ -48,10 +47,11 @@ def action_result(action: Action, result: int) -> ActionResult:
         # heal actions could just cause negative HP gain, so leave as is
         return (action, result)
     
-def possible_actions(player, enemies: dict[str, Enemy]) -> list[Action]:
+def possible_actions(player, enemies) -> list[Action]:
     result = []
     for enemy in enemies.values():
         for damageType in DAMAGE_TYPES.values():
             result.append(Action(enemy, damageType))
     for damageType in DAMAGE_TYPES.values():
         result.append(Action(None, damageType))
+    return result

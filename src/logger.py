@@ -3,7 +3,7 @@ from typing import Any
 class Logger(object):
     current_indent = 0
     # items beyond this level of indent will __NOT__ be printed
-    max_indent = 0
+    max_indent = 5
 
 def increase_indent():
     Logger.current_indent += 1
