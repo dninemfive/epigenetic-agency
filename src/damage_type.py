@@ -41,7 +41,7 @@ DAMAGE_TYPE_GENES: dict[str, GeneTemplate] = {
 
 def damage_for(attackerType: DamageType, defenderType: DamageType):
     if not attackerType or not defenderType:
-        return 1
+        return 2
     if attackerType.name not in DAMAGE_TYPES or defenderType.name not in DAMAGE_TYPES:
         return 1
     return DAMAGE_TYPES[attackerType.name].damage_against(defenderType)
