@@ -4,17 +4,21 @@ from utils import list_str
 from gene import Genome, cross_genome
 import random
 from typing import Any
+from logger import increase_indent, decrease_indent, log
 
 def battle(player: Player, enemies: dict[str, Enemy]) -> None:
     """
     A player fights enemies until either the player is dead or all the enemies are dead.
     """
+    increase_indent()
     def do_turn(turnNumber: int):
-        print("\t\tTurn", turnNumber, ":",player,"vs",list_str(enemies.values()))
+        increase_indent()
+        log(f"Turn {turnNumber}: {player} vs {list_str(enemies.values())}")
         player.do_attacks(enemies)
         for enemy in [x for x in enemies.values() if x.hp > 0]:
             dmg: int = player.take_hit(enemy.damage_type)
-            print("\t\t\t", enemy.name,"attacks player for", dmg, "damage!")
+            log(f"{enemy.name} attacks player for {dmg} damage!")
+        decrease_indent()
     ct: int = 0
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
@@ -26,21 +30,24 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
         if k == "None": continue
         player.ammo[k] = DEFAULT_AMMO
     # player heals hp?
+    decrease_indent()
 
 def battles_until_death(player: Player) -> Genome:
     assert isinstance(player.decider, Decider_Genome)
+    increase_indent()
     battle_ct: int = 0
     while player.hp > 0:
-        print("\tBattle",battle_ct)
+        log(f"Battle {battle_ct}:")
         enemies: dict[str, Enemy] = {}
         while sum([x.hp for x in enemies.values()]) < 3:
             template: EnemyTemplate = random.choice([x for x in ENEMY_TEMPLATES.values()])
             name: str = template.name + " " + str(i + 1)
             enemies[name] = Enemy(template, name)
         battle(player, enemies)
-        print("\tPlayer has died after",player.decider.genome.fitness - 1,"battles!")
+        log(f"Player has died after {player.decider.genome.fitness - 1} battles!")
         battle_ct += 1
-    print("\tResulting genome:",player.decider.genome)
+    log(player.decider.genome)
+    decrease_indent()
     return player.decider.genome
 
 def new_genome(gene_pool: list[Genome]):
@@ -54,7 +61,7 @@ def new_genome(gene_pool: list[Genome]):
 if __name__ == "__main__":
     gene_pool: list[Genome] = []
     next_genome: Genome = Decider_Genome().genome
-    for i in range(1000):
+    for i in range(1000000):
         print("Generation",i)
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player))
@@ -64,7 +71,7 @@ if __name__ == "__main__":
         if len(new_gene_pool) > 10:
             print("Dropping",list_str([x for x in gene_pool if x not in new_gene_pool]))
             gene_pool = new_gene_pool
-    print("Final gene pool: ")
+    print("Final gene pool:")
     i: int = 1
     for item in gene_pool:
         print(i,":",item)

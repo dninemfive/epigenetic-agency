@@ -38,7 +38,7 @@ DAMAGE_TYPES: dict[str, DamageType] = {
 }
 
 DAMAGE_TYPE_GENES: dict[str, GeneTemplate] = {
-    k: GeneTemplate(k) for k in _types.keys()
+    k: GeneTemplate(k, None) for k in _types.keys()
 }
 
 def damage_for(attackerType: str, defenderType: str):

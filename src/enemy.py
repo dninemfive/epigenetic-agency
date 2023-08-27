@@ -13,7 +13,7 @@ ENEMY_TEMPLATES: dict[str, EnemyTemplate] = {
     "Zombie": EnemyTemplate("Zombie", 5, "None"),
     "Blaze": EnemyTemplate("Blaze", 5, "Fire"),
     "Silverfish": EnemyTemplate("Silverfish", 2, "Earth"),
-    "Iceologer": EnemyTemplate("Iceologer", 5, "Frost") 
+    "Chillager": EnemyTemplate("Chillager", 5, "Frost") 
 }
 
 class Enemy(object):

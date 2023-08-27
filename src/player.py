@@ -2,6 +2,7 @@ from enemy import Enemy
 from gene import Gene, Genome
 from damage_type import DAMAGE_TYPES, DAMAGE_TYPE_GENES, damage_for, DamageType
 from utils import list_str
+from logger import log
 import random
 
 DEFAULT_AMMO: int = 10
@@ -36,7 +37,7 @@ class Player(object):
                 remainingEnemies.pop(target)
             self.consume_ammo(damageType)
             self.remainingMoves -= 1
-            print("\t\t\tPlayer attacks", target, "with", damageType, "dealing", dmg, "damage!")
+            log(f"Player attacks {target} with {damageType}, dealing {dmg} damage!")
 
     def take_hit(self, damageType: DamageType) -> int:
         """
