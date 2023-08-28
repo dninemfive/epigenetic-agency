@@ -83,25 +83,31 @@ def new_genome(gene_pool: list[Genome]):
     else:
         parents = random.choices(gene_pool, weights=[x.fitness for x in gene_pool], k=2)
         return cross(parents[0], parents[1])
+    
+def do_test(name: str, epigenome: bool, index: int):
+    filename: str = f"src/results/{name}_{index}.txt"
+    # I HATE PYTHON!!!! AAAAAAAAAAAAAAAA
+    # w allows overwriting the file, truncating it
+    with open(filename, "w"):
+        pass
+    with open(filename, "a") as file:
+        gene_pool: list[Genome] = []
+        next_genome: Genome = Decider_Genome().genome
+        for i in range(10000):        
+            player: Player = Player(Decider_Genome(next_genome))
+            gene_pool.append(battles_until_death(player, disable_epigenome_feedback=not epigenome))
+            next_genome: Genome = new_genome(gene_pool)
+            mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
+            # https://stackoverflow.com/a/46062115
+            if i % 100 == 0:
+                log(f"{name} {index:02}-{i:04}: {mean_fitness:.2f}")
+            file.write(f"{mean_fitness}\n")
+            new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
+            if len(new_gene_pool) > 10:
+                # log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
+                gene_pool = new_gene_pool
 
 if __name__ == "__main__":
-    for j in range(10):
-        filename: str = f"src/results/without_epigenome_{j}.txt"
-        # I HATE PYTHON!!!! AAAAAAAAAAAAAAAA
-        with open(filename, "x"):
-            pass
-        with open(filename, "a") as file:
-            gene_pool: list[Genome] = []
-            next_genome: Genome = Decider_Genome().genome
-            for i in range(7500):        
-                player: Player = Player(Decider_Genome(next_genome))
-                gene_pool.append(battles_until_death(player, disable_epigenome_feedback=True))
-                next_genome: Genome = new_genome(gene_pool)
-                mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
-                # https://stackoverflow.com/a/46062115
-                log(f"Generation {j}.{i}: fitness {mean_fitness:.2f}")
-                file.write(f"{mean_fitness}\n")
-                new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
-                if len(new_gene_pool) > 10:
-                    # log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
-                    gene_pool = new_gene_pool
+    for i in range(10):
+        do_test("epi", True, i)
+        do_test("___", False, i)
