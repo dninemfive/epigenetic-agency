@@ -26,7 +26,7 @@ class Epigene(object):
 
     def __str__(self):
         # https://zetcode.com/python/fstring/
-        return f"<{self.expression:2%}>"
+        return f"<{self.expression:2.2f}>"
 
 # ================= GENE =================
 
@@ -51,7 +51,7 @@ class Gene(object):
         return self.action_evaluator(player, enemies, action) * epigeneWeight
     
     def __str__(self):
-        result: str = f"<{self.name}:{self._weight:2%}"
+        result: str = f"<{self.name}:{self._weight:2.2f}"
         if self.epigene is not None:
             result += str(self.epigene)
         return f"{result}>"
