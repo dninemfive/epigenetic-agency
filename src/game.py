@@ -94,10 +94,14 @@ def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigeno
     for i in range(TEST_LENGTH):
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player, disable_epigenome_feedback=not epigenome))
-        
-        # caching for performance
-        fitnesses: list[float] = [x.fitness for x in gene_pool]
         gene_pool_size: int = len(gene_pool)
+        if gene_pool_size > 20:
+            gene_pool = sorted(gene_pool, key=lambda x: x.fitness, reverse=True)
+            for i in range(gene_pool_size // 2):
+                gene_pool.pop()
+        # caching for performance
+        gene_pool_size = len(gene_pool)
+        fitnesses: list[float] = [x.fitness for x in gene_pool]        
         min_fitness: float = min(fitnesses)
         mean_fitness: float = sum(fitnesses) / gene_pool_size
         max_fitness: float = max(fitnesses)
@@ -106,14 +110,6 @@ def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigeno
             log(f"{name} {index:02}-{i:04}:\t{min_fitness:.2f}\t{mean_fitness:.2f}\t{max_fitness:.2f}\t({timestr})")
             start_time: float = time.time()
         data_out[i].append((min_fitness, mean_fitness, max_fitness))
-        if gene_pool_size > 20:
-            gene_pool = sorted(gene_pool, key=lambda x: x.fitness, reverse=True)
-            # max_fitness = gene_pool[0].fitness
-            # before: str = list_str([x.fitness for x in gene_pool], print_brackets=True)
-            for i in range(gene_pool_size // 2):
-                gene_pool.pop()
-            # gene_pool = [x for x in gene_pool if x.fitness > (max_fitness * 0.1)]
-            # print(f"{before} -> {list_str([x.fitness for x in gene_pool], print_brackets=True)}")
         next_genome: Genome = new_genome(gene_pool)
     best_epigenome_of_pool: Genome = max(gene_pool, key=lambda x: x.fitness)
     return best_epigenome_of_pool
