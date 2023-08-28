@@ -85,7 +85,7 @@ def new_genome(gene_pool: list[Genome]):
         parents = random.choices(gene_pool, weights=[x.fitness for x in gene_pool], k=2)
         return cross(parents[0], parents[1])
     
-TEST_LENGTH: int = 100
+TEST_LENGTH: int = 10000
 
 def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigenome: bool, index: int) -> Genome:
     gene_pool: list[Genome] = []
@@ -94,7 +94,7 @@ def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigeno
     for i in range(TEST_LENGTH):
         player: Player = Player(Decider_Genome(next_genome))
         gene_pool.append(battles_until_death(player, disable_epigenome_feedback=not epigenome))
-        next_genome: Genome = new_genome(gene_pool)
+        
         # caching for performance
         fitnesses: list[float] = [x.fitness for x in gene_pool]
         gene_pool_size: int = len(gene_pool)
@@ -106,10 +106,15 @@ def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigeno
             log(f"{name} {index:02}-{i:04}:\t{min_fitness:.2f}\t{mean_fitness:.2f}\t{max_fitness:.2f}\t({timestr})")
             start_time: float = time.time()
         data_out[i].append((min_fitness, mean_fitness, max_fitness))
-        if gene_pool_size > 50:
+        if gene_pool_size > 20:
             gene_pool = sorted(gene_pool, key=lambda x: x.fitness, reverse=True)
+            # max_fitness = gene_pool[0].fitness
+            # before: str = list_str([x.fitness for x in gene_pool], print_brackets=True)
             for i in range(gene_pool_size // 2):
                 gene_pool.pop()
+            # gene_pool = [x for x in gene_pool if x.fitness > (max_fitness * 0.1)]
+            # print(f"{before} -> {list_str([x.fitness for x in gene_pool], print_brackets=True)}")
+        next_genome: Genome = new_genome(gene_pool)
     best_epigenome_of_pool: Genome = max(gene_pool, key=lambda x: x.fitness)
     return best_epigenome_of_pool
 
@@ -131,7 +136,7 @@ if __name__ == "__main__":
         non_epigenome_data.append([])
     best_epigenome_genome: Genome = None
     best_non_epigenome_genome: Genome = None    
-    for i in range(1):
+    for i in range(10):
         start_time: float = time.time()
         genome: Genome = do_test("epi", epigenome_data, True, i)
         print(f"Total time elapsed: {time.time() - start_time:.2f}s")
