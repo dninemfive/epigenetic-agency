@@ -1,4 +1,4 @@
-from player import Player, Decider_Genome, DEFAULT_AMMO, HEAL_AMOUNT
+from player import Player, Decider_Genome, DEFAULT_AMMO
 from enemy import Enemy, EnemyTemplate, ENEMY_TEMPLATES
 from utils import list_str
 from gene import Genome, cross
@@ -6,6 +6,7 @@ import random
 from typing import Any
 from logger import increase_indent, decrease_indent, log
 from action import Action, ActionResult
+import time
 
 def battle(player: Player, enemies: dict[str, Enemy], disable_epigenome_feedback: bool = False) -> None:
     """
@@ -84,30 +85,64 @@ def new_genome(gene_pool: list[Genome]):
         parents = random.choices(gene_pool, weights=[x.fitness for x in gene_pool], k=2)
         return cross(parents[0], parents[1])
     
-def do_test(name: str, epigenome: bool, index: int):
-    filename: str = f"src/results/{name}_{index}.txt"
-    # I HATE PYTHON!!!! AAAAAAAAAAAAAAAA
-    # w allows overwriting the file, truncating it
-    with open(filename, "w"):
+TEST_LENGTH: int = 100
+
+def do_test(name: str, data_out: list[list[tuple[float, float, float]]], epigenome: bool, index: int) -> Genome:
+    gene_pool: list[Genome] = []
+    next_genome: Genome = Decider_Genome().genome
+    start_time: float = None
+    for i in range(TEST_LENGTH):
+        player: Player = Player(Decider_Genome(next_genome))
+        gene_pool.append(battles_until_death(player, disable_epigenome_feedback=not epigenome))
+        next_genome: Genome = new_genome(gene_pool)
+        # caching for performance
+        fitnesses: list[float] = [x.fitness for x in gene_pool]
+        gene_pool_size: int = len(gene_pool)
+        min_fitness: float = min(fitnesses)
+        mean_fitness: float = sum(fitnesses) / gene_pool_size
+        max_fitness: float = max(fitnesses)
+        if i % 69 == 0:
+            timestr = "n/a" if start_time is None else f"{time.time() - start_time:.2f}s"
+            log(f"{name} {index:02}-{i:04}:\t{min_fitness:.2f}\t{mean_fitness:.2f}\t{max_fitness:.2f}\t({timestr})")
+            start_time: float = time.time()
+        data_out[i].append((min_fitness, mean_fitness, max_fitness))
+        if gene_pool_size > 50:
+            gene_pool = sorted(gene_pool, key=lambda x: x.fitness, reverse=True)
+            for i in range(gene_pool_size // 2):
+                gene_pool.pop()
+    best_epigenome_of_pool: Genome = max(gene_pool, key=lambda x: x.fitness)
+    return best_epigenome_of_pool
+
+def write_data(data: list[list[tuple[float, float, float]]], filename: str):
+    with open(f"{filename}.tsv", "w") as _:
         pass
-    with open(filename, "a") as file:
-        gene_pool: list[Genome] = []
-        next_genome: Genome = Decider_Genome().genome
-        for i in range(10000):        
-            player: Player = Player(Decider_Genome(next_genome))
-            gene_pool.append(battles_until_death(player, disable_epigenome_feedback=not epigenome))
-            next_genome: Genome = new_genome(gene_pool)
-            mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
-            # https://stackoverflow.com/a/46062115
-            if i % 100 == 0:
-                log(f"{name} {index:02}-{i:04}: {mean_fitness:.2f}")
-            file.write(f"{mean_fitness}\n")
-            new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
-            if len(new_gene_pool) > 10:
-                # log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
-                gene_pool = new_gene_pool
+    with open(f"{filename}.tsv", "a") as file:
+        for item in data:
+            line: str = ""
+            for t in item:
+                line += f"{t[0]}\t{t[1]}\t{t[2]}\t"
+            file.write(f"{line}\n")
 
 if __name__ == "__main__":
-    for i in range(10):
-        do_test("epi", True, i)
-        do_test("___", False, i)
+    epigenome_data: list[list[tuple[float, float, float]]] = []
+    non_epigenome_data: list[list[tuple[float, float, float]]] = []
+    for i in range(TEST_LENGTH):
+        epigenome_data.append([])
+        non_epigenome_data.append([])
+    best_epigenome_genome: Genome = None
+    best_non_epigenome_genome: Genome = None    
+    for i in range(1):
+        start_time: float = time.time()
+        genome: Genome = do_test("epi", epigenome_data, True, i)
+        print(f"Total time elapsed: {time.time() - start_time:.2f}s")
+        if best_epigenome_genome is None or genome.fitness > best_epigenome_genome.fitness:
+            best_epigenome_genome = genome
+        start_time: float = time.time()
+        genome = do_test("non", non_epigenome_data, False, i)
+        print(f"Total time elapsed: {time.time() - start_time:.2f}s")
+        if best_non_epigenome_genome is None or genome.fitness > best_non_epigenome_genome.fitness:
+            best_non_epigenome_genome = genome
+    write_data(epigenome_data, "epigenome_data")
+    write_data(non_epigenome_data, "non-epigenome_data")
+    with open("best_genomes.txt", "w") as file:
+        file.writelines([str(best_epigenome_genome), str(best_non_epigenome_genome)])
