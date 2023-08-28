@@ -76,26 +76,23 @@ def new_genome(gene_pool: list[Genome]):
         return cross(parents[0], parents[1])
 
 if __name__ == "__main__":
-    gene_pool: list[Genome] = []
-    next_genome: Genome = Decider_Genome().genome
-    for i in range(10000):        
-        player: Player = Player(Decider_Genome(next_genome))
-        gene_pool.append(battles_until_death(player))
-        next_genome: Genome = new_genome(gene_pool)
-        mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
-        # https://stackoverflow.com/a/46062115
-        log(f"Generation {i}: fitness {mean_fitness:.2f}")
-        new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
-        if len(new_gene_pool) > 10:
-            log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
-            gene_pool = new_gene_pool
-    print("\nFinal gene pool:")
-    i: int = 1
-    sorted_gene_pool = sorted(gene_pool, key=lambda x: x.fitness)
-    for item in sorted_gene_pool:
-        log(f"{i:2}: {item}", 1)
-        i += 1
-        if i > 10:
-            break
-    print("\n========== And now, the strongest player battles!\n")
-    battle(Player(Decider_Genome(sorted_gene_pool[0])))
+    for j in range(10):
+        filename: str = f"src/results/with_epigenome_{j}.txt"
+        # I HATE PYTHON!!!! AAAAAAAAAAAAAAAA
+        with open(filename, "x"):
+            pass
+        with open(filename, "a") as file:
+            gene_pool: list[Genome] = []
+            next_genome: Genome = Decider_Genome().genome
+            for i in range(7500):        
+                player: Player = Player(Decider_Genome(next_genome))
+                gene_pool.append(battles_until_death(player))
+                next_genome: Genome = new_genome(gene_pool)
+                mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
+                # https://stackoverflow.com/a/46062115
+                log(f"Generation {j}.{i}: fitness {mean_fitness:.2f}")
+                file.write(f"{mean_fitness}\n")
+                new_gene_pool: list[Genome] = [x for x in gene_pool if x.fitness > mean_fitness]
+                if len(new_gene_pool) > 10:
+                    # log(f"Dropping {list_str([x for x in gene_pool if x not in new_gene_pool])}", 1)
+                    gene_pool = new_gene_pool
