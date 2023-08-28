@@ -50,8 +50,8 @@ def action_result(action: Action, result: int) -> ActionResult:
 def possible_actions(player, enemies) -> list[Action]:
     result = []
     for enemy in enemies.values():
-        for damageType in DAMAGE_TYPES.values():
+        for damageType in player.available_ammo_types:
             result.append(Action(enemy, damageType))
-    for damageType in DAMAGE_TYPES.values():
+    for damageType in player.available_ammo_types:
         result.append(Action(None, damageType))
     return result
