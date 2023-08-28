@@ -7,7 +7,7 @@ from typing import Any
 from logger import increase_indent, decrease_indent, log
 from action import Action, ActionResult
 
-def battle(player: Player, enemies: dict[str, Enemy]) -> None:
+def battle(player: Player, enemies: dict[str, Enemy], disable_epigenome_feedback: bool = False) -> None:
     """
     A player fights enemies until either the player is dead or all the enemies are dead.
     """
@@ -25,31 +25,37 @@ def battle(player: Player, enemies: dict[str, Enemy]) -> None:
             actionResults.append(result)
             remainingEnemies: dict[str, Enemy] = {k: v for k, v in enemies.items() if v.hp > 0}
         for enemy in remainingEnemies.values():
-            dmg: int = player.take_hit(enemy.damage_type)
-        healct = len([x for x in actionResults if x[0].is_defense])
-        for result in actionResults:
-            if result[0].is_attack:
-                player.decider.receive_feedback(result[1])
-            if result[0].is_defense:
-                player.decider.receive_feedback((player.hp - initial_player_hp) / float(healct))
+            dmg: int = player.take_hit(enemy.damage_type)        
+        # performed at the end of the turn to avoid having the model change during a turn
+        # maybe should change that back, except that healing feedback won't be available at the end of turn
+        if not disable_epigenome_feedback:
+            healct = len([x for x in actionResults if x[0].is_defense])
+            for result in actionResults:
+                if result[0].is_attack:
+                    player.decider.receive_feedback(result[1])
+                if result[0].is_defense:
+                    player.decider.receive_feedback((player.hp - initial_player_hp) / float(healct))
         decrease_indent()
     def finalize(reward: float = 1):
         if isinstance(player.decider, Decider_Genome):
             player.decider.genome.complete_battle(reward)
     ct: int = 0
+    finalized: bool = False
     while player.hp > 0 and any([x for x in enemies.values() if x.hp > 0]):
         ct += 1
         do_turn(ct)
         if ct > 100:
             finalize(0.1)
-    finalize(original_enemy_count)
+            finalized = True
+            break
+    if not finalized: finalize(original_enemy_count)
     # refill ammo
     for k in player.ammo.keys():
         if k == "None": continue
         player.ammo[k] = DEFAULT_AMMO
     decrease_indent()
 
-def battles_until_death(player: Player) -> Genome:
+def battles_until_death(player: Player, disable_epigenome_feedback: bool = False) -> Genome:
     assert isinstance(player.decider, Decider_Genome)
     increase_indent()
     battle_ct: int = 0
@@ -60,7 +66,7 @@ def battles_until_death(player: Player) -> Genome:
             template: EnemyTemplate = random.choice([x for x in ENEMY_TEMPLATES.values()])
             name: str = template.name + " " + str(i + 1)
             enemies[name] = Enemy(template, name)
-        battle(player, enemies)
+        battle(player, enemies, disable_epigenome_feedback)
         log(f"Player has died after {player.decider.genome.fitness - 1} battles!")
         battle_ct += 1
     log(player.decider.genome)
@@ -71,13 +77,16 @@ def new_genome(gene_pool: list[Genome]):
     assert len(gene_pool) > 0
     if len(gene_pool) == 1:
         return gene_pool[0]
+    elif len(gene_pool) == 2:
+        # handle the 2-parent case for performance
+        return cross(gene_pool[0], gene_pool[1])
     else:
         parents = random.choices(gene_pool, weights=[x.fitness for x in gene_pool], k=2)
         return cross(parents[0], parents[1])
 
 if __name__ == "__main__":
     for j in range(10):
-        filename: str = f"src/results/with_epigenome_{j}.txt"
+        filename: str = f"src/results/without_epigenome_{j}.txt"
         # I HATE PYTHON!!!! AAAAAAAAAAAAAAAA
         with open(filename, "x"):
             pass
@@ -86,7 +95,7 @@ if __name__ == "__main__":
             next_genome: Genome = Decider_Genome().genome
             for i in range(7500):        
                 player: Player = Player(Decider_Genome(next_genome))
-                gene_pool.append(battles_until_death(player))
+                gene_pool.append(battles_until_death(player, disable_epigenome_feedback=True))
                 next_genome: Genome = new_genome(gene_pool)
                 mean_fitness: float = sum([x.fitness for x in gene_pool]) / len(gene_pool)
                 # https://stackoverflow.com/a/46062115

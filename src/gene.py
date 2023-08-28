@@ -45,10 +45,10 @@ class Gene(object):
     def weight(self):
         return self._weight if self.epigene is None else self._weight * self.epigene.expression
     
-    def evaluate_action(self, player, enemies, action: Action) -> float:
+    def evaluate_action(self, player, enemies, action: Action, epigeneWeight: float = 1.) -> float:
         if self.action_evaluator is None:
             raise NotImplementedError(f"This gene does not have an action evaluator!")
-        return self.action_evaluator(player, enemies, action)
+        return self.action_evaluator(player, enemies, action) * epigeneWeight
     
     def __str__(self):
         result: str = f"<{self.name}:{self._weight:2%}"
@@ -98,9 +98,9 @@ class Genome(object):
         weight: float = 1
         relevant_ct: float = 0
         for gene in self.action_genes:
-            value: float = gene.evaluate_action(player, enemies, action)
+            value: float = gene.evaluate_action(player, enemies, action, self.genes["Epigene Weight"].weight)
             if value != 0: relevant_ct += 0
-            weight += gene.weight * gene.evaluate_action(player, enemies, action)
+            weight += gene.weight * value
         relevant_ct = 1 if relevant_ct == 0 else relevant_ct
         return clamp(weight / relevant_ct, min_val=0, max_val=None)
     
