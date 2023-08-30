@@ -12,7 +12,7 @@ public class Epigene
     {
         Expression = expression;
     }
-    public void ReceiveFeedback<T>(ActionResult<T> feedback, float adaptability)
+    public void ReceiveFeedback(ActionResult feedback, float adaptability)
         => Expression = (Expression + feedback.Result.Sigmoid() * adaptability).Clamp();
     public void ApplyCentralBias(float centralBias)
         => Expression = Utils.WeightedAverage(Expression, 0.5f, centralBias);

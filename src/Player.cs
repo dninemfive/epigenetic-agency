@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace epigenetic_agency;
-public class Player : IActionTarget<void>
+public class Player
 {
     public const int DEFAULT_HP = 25,
                      DEFAULT_AMMO = 10,
