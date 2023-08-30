@@ -26,7 +26,7 @@ public class Player
         Ammo[DamageType.None] = null;
         Decider = decider;
     }
-    public Action NextAction(Dictionary<string, Enemy> enemies)
+    public Action? NextAction(Dictionary<string, Enemy> enemies)
         => Decider.ChooseAction(this, enemies);
     public void ApplyAction(Action action)
     {

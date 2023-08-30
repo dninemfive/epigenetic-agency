@@ -7,12 +7,15 @@ internal class Program
     public static Random Random = new();
     private static void Main(string[] args)
     {
-        int n = int.TryParse(args[0], out int val) ? val : 10;
+        int n = 10;
+        if (args.Length > 0 && int.TryParse(args[0], out int val))
+            n = val;
         string baseFolder = "results/";
         DateTime startTime = DateTime.Now;
         for(int j = 0; j < n; j++)
         {
             string filePath = Path.Join(baseFolder, $"epigenome{j}.txt");
+            _ = Directory.CreateDirectory(baseFolder);
             using FileStream fs = File.Open(filePath, FileMode.OpenOrCreate);
             using StreamWriter sw = new(fs);
             List<Genome> genePool = new();
@@ -23,7 +26,11 @@ internal class Program
                 genePool.Add(Game.BattleToDeath(player)!);
                 nextGenome = Genome.BreedFrom(genePool);
                 float meanFitness = genePool.Select(x => x.Fitness).Average();
-                Logger.Log($"Generation {j}/{i}: {meanFitness:P2}");
+                if(i % 69 == 0)
+                {
+                    Logger.Log($"Generation {j}-{i}: {meanFitness:F2} ({(DateTime.Now - startTime)})");
+                    startTime = DateTime.Now;
+                }
                 sw.WriteLine(meanFitness);
                 List<Genome> newGenePool = genePool.Where(x => x.Fitness > meanFitness).ToList();
                 if(newGenePool.Count > 10)

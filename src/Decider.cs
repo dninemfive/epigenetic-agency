@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace epigenetic_agency.results;
 public interface IDecider
 {
-    public Action ChooseAction(Player player, Dictionary<string, Enemy> enemies);
+    public Action? ChooseAction(Player player, Dictionary<string, Enemy> enemies);
     public void ReceiveFeedback(ActionResult feedback);
 }
 public class GenomeDecider : IDecider
@@ -17,7 +17,7 @@ public class GenomeDecider : IDecider
     {
         Genome = genome ?? new();
     }
-    public Action ChooseAction(Player player, Dictionary<string, Enemy> enemies)
+    public Action? ChooseAction(Player player, Dictionary<string, Enemy> enemies)
         => Genome.EvaluateActions(player, enemies);
     public void ReceiveFeedback(ActionResult feedback)
         => Genome.ReceiveFeedback(feedback);

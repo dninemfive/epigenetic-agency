@@ -20,11 +20,12 @@ public class Gene
         ActionEvaluator = evaluator;
         Epigene = epigene;
     }
-    public float EvaluateAction(Player player, Dictionary<string, Enemy> enemies, Action action, float weight)
+    public float? EvaluateAction(Player player, Dictionary<string, Enemy> enemies, Action action, float weight)
     {
         if (ActionEvaluator is null)
             throw new InvalidOperationException("Genes without an ActionEvaluator can't evaluate actions!");
-        return ActionEvaluator(player, enemies, action)!.Value * weight;
+        float? result = ActionEvaluator(player, enemies, action);
+        return result is null ? null : result * weight;
     }
     public override string ToString()
         => $"<{Name}:{Weight:P2}{Epigene?.ToString() ?? ""}>";

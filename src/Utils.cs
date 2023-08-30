@@ -47,6 +47,6 @@ public static class Utils
             if (sum >= target)
                 return item;
         }
-        throw new Exception($"Somehow, WeightedRandomElement ran out of weight: total {total}, target {target}, sum {sum}");
+        return items.Last().item;
     }
 }

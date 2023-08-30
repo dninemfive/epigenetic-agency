@@ -36,9 +36,12 @@ public class Genome
             g.Epigene?.ApplyCentralBias(Genes["Epigene Central Bias"]);
         }
     }
-    public Action EvaluateActions(Player player, Dictionary<string, Enemy> enemies)
+    public Action? EvaluateActions(Player player, Dictionary<string, Enemy> enemies)
     {
         List<(Action action, float weight)> actions = new();
+        List<Action> possibleActions = Action.PossibleActions(player, enemies).ToList();
+        if (!possibleActions.Any())
+            return null;
         foreach(Action action in Action.PossibleActions(player, enemies)) {
             actions.Add((action, EvaluateAction(player, enemies, action)));
         }
@@ -63,15 +66,13 @@ public class Genome
     }
     public void ReceiveFeedback(ActionResult feedback)
     {
-        foreach(Gene gene in ActionGenes)
+        foreach(Gene gene in GenesWithEpigenes)
         {
             gene.Epigene?.ReceiveFeedback(feedback, Genes["Epigene Adaptability"]);
         }
     }
     public IEnumerable<Gene> GenesWithEpigenes
         => Genes.Values.Where(x => x.HasEpigene);
-    public IEnumerable<Gene> ActionGenes
-        => Genes.Values.Where(x => x.IsActionGene);
     public static IEnumerable<Gene> DefaultGenes
     {
         get
@@ -93,7 +94,7 @@ public class Genome
     public static Genome Cross(Genome a, Genome b)
     {
         Dictionary<string, Gene> newGenes = new();
-        float ratio = a.Fitness / (float)b.Fitness;
+        float ratio = a.Fitness / (float)(a.Fitness + b.Fitness);
         foreach(string key in a.Genes.Keys)
         {
             newGenes[key] = Gene.Cross(a[key], b[key], ratio)

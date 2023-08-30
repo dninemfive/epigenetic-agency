@@ -49,8 +49,11 @@ public record Action
             foreach (DamageType dt in player.AvailableAmmo)
                 yield return (enemy, dt);
         }
-        foreach (DamageType dt in player.AvailableAmmo)
-            yield return (null, dt);
+        if(player.HP < Player.DEFAULT_HP)
+        {
+            foreach (DamageType dt in player.AvailableAmmo)
+                yield return (null, dt);
+        }        
     }
 }
 public struct ActionResult

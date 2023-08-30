@@ -28,7 +28,9 @@ public static class Game
                     if (v.Hp > 0)
                         remainingEnemies[k] = v;
                 }
-                Action nextAction = player.NextAction(remainingEnemies);
+                Action? nextAction = player.NextAction(remainingEnemies);
+                if (nextAction is null)
+                    break;
                 (Action action, int result) feedback = nextAction.Apply(player);
                 results.Add(feedback);
             }
