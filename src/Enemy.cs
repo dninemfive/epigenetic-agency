@@ -25,7 +25,7 @@ public record EnemyTemplate
         { "Chillager",  new("Chillager",    5, DamageType.Frost ) }
     };
 }
-public class Enemy
+public class Enemy : IActionTarget<int>
 {
     public EnemyTemplate Template { get; private set; }
     public string Name { get; private set; }

@@ -8,7 +8,7 @@ namespace epigenetic_agency.results;
 public interface IDecider
 {
     public Action ChooseAction(Player player, Dictionary<string, Enemy> enemies);
-    public void ReceiveFeedback(ActionResult feedback);
+    public void ReceiveFeedback<T>(ActionResult<T> feedback);
 }
 public class GenomeDecider : IDecider
 {
@@ -19,7 +19,7 @@ public class GenomeDecider : IDecider
     }
     public Action ChooseAction(Player player, Dictionary<string, Enemy> enemies)
         => Genome.EvaluateActions(player, enemies);
-    public void ReceiveFeedback(ActionResult feedback)
+    public void ReceiveFeedback<T>(ActionResult<T> feedback)
         => Genome.ReceiveFeedback(feedback);
     public override string ToString()
         => $"GenomeDecider({Genome})";

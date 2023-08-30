@@ -61,7 +61,7 @@ public class Genome
             relevantGenes = 1;
         return (weight / relevantGenes).Clamp(min: 0, max: null);
     }
-    public void ReceiveFeedback(ActionResult feedback)
+    public void ReceiveFeedback<T>(ActionResult<T> feedback)
     {
         foreach(Gene gene in ActionGenes)
         {
