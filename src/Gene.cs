@@ -18,7 +18,7 @@ public class Gene
         Name = name;
         _weight = weight;
         ActionEvaluator = evaluator;
-        Epigene = epigene ?? new();
+        Epigene = epigene;
     }
     public float EvaluateAction(Player player, Dictionary<string, Enemy> enemies, Action action, float weight)
     {
@@ -46,8 +46,9 @@ public class Gene
             float newWeight = (_weight - magnitude / 2 + (float)Program.Random.NextDouble() * magnitude).Clamp();
             return new(Name, newWeight, ActionEvaluator, Epigene?.Copy());
         }
-        return new(Name, _weight);
+        return new(Name, _weight, ActionEvaluator, Epigene?.Copy());
     }
-    public bool IsActionGene => ActionEvaluator is not null && Epigene is not null;
+    public bool HasEpigene => Epigene is not null;
+    public bool HasActionEvaluator => ActionEvaluator is not null;
     public static implicit operator float(Gene gene) => gene.Weight;
 }

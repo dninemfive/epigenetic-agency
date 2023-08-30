@@ -7,8 +7,10 @@ internal class Program
     public static Random Random = new();
     private static void Main(string[] args)
     {
-        string baseFolder = "src/results/cs/";
-        for(int j = 0; j < 10; j++)
+        int n = int.TryParse(args[0], out int val) ? val : 10;
+        string baseFolder = "results/";
+        DateTime startTime = DateTime.Now;
+        for(int j = 0; j < n; j++)
         {
             string filePath = Path.Join(baseFolder, $"epigenome{j}.txt");
             using FileStream fs = File.Open(filePath, FileMode.OpenOrCreate);

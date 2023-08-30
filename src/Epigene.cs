@@ -17,7 +17,7 @@ public class Epigene
     public void ApplyCentralBias(float centralBias)
         => Expression = Utils.WeightedAverage(Expression, 0.5f, centralBias);
     public override string ToString()
-        => $"<{Expression:P2}>";
+        => $"<{Expression:F2}>";
     public Epigene Copy()
     {
         return new(Expression);

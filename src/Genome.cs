@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace epigenetic_agency;
 public class Genome
 {
+    [JsonInclude]
     public Dictionary<string, Gene> Genes { get; private set; } = new();
+    [JsonInclude]
     public float Fitness { get; private set; }
     public Genome(Dictionary<string, Gene>? genes = null, float fitness = 0)
     {
@@ -27,7 +31,7 @@ public class Genome
     public void CompleteBattle(float reward = 1)
     {
         Fitness += reward;
-        foreach(Gene g in ActionGenes)
+        foreach(Gene g in GenesWithEpigenes)
         {
             g.Epigene?.ApplyCentralBias(Genes["Epigene Central Bias"]);
         }
@@ -44,7 +48,7 @@ public class Genome
     {
         float weight = 1;
         int relevantGenes = 0;
-        foreach(Gene gene in ActionGenes)
+        foreach(Gene gene in GenesWithEpigenes)
         {
             float? value = gene.EvaluateAction(player, enemies, action, Genes["Epigene Weight"]);
             if (value is not null)
@@ -64,6 +68,8 @@ public class Genome
             gene.Epigene?.ReceiveFeedback(feedback, Genes["Epigene Adaptability"]);
         }
     }
+    public IEnumerable<Gene> GenesWithEpigenes
+        => Genes.Values.Where(x => x.HasEpigene);
     public IEnumerable<Gene> ActionGenes
         => Genes.Values.Where(x => x.IsActionGene);
     public static IEnumerable<Gene> DefaultGenes
@@ -77,7 +83,7 @@ public class Genome
             yield return new("Mutation Magnitude", 0.1f);
             foreach((string name, ActionEvaluator ae) in ActionEvaluators.All)
             {
-                yield return new(name, 0.5f, ae);
+                yield return new(name, 0.5f, ae, new());
             }
         }
     }
